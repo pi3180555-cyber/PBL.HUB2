@@ -1,0 +1,155 @@
+-- ═══════════════════════════════════════════════════════════
+-- PBL HUB v3.1 - Key: PBL2026
+-- by @pi3180555
+-- ═══════════════════════════════════════════════════════════
+local CG=game:GetService("CoreGui") local TS=game:GetService("TweenService") local SS=game:GetService("SoundService")
+local PL=game:GetService("Players") local ST=game:GetService("Stats") local LG=game:GetService("Lighting")
+local TP=game:GetService("TeleportService") local HS=game:GetService("HttpService") local VU=game:GetService("VirtualUser")
+local LP=PL.LocalPlayer
+local CFG={Key="PBL2026",Nome=LP.Name,Versao="v3.1",Criador="@pi3180555",Disc="https://discord.gg/x"}
+local T={Bg=Color3.fromRGB(18,18,22),Bg2=Color3.fromRGB(24,24,28),Sb=Color3.fromRGB(14,14,18),SbA=Color3.fromRGB(38,32,28),
+Cd=Color3.fromRGB(32,32,38),Cd2=Color3.fromRGB(26,26,32),CdH=Color3.fromRGB(42,42,50),Tx=Color3.fromRGB(240,240,245),
+TxD=Color3.fromRGB(120,120,135),TxS=Color3.fromRGB(175,175,190),Gd=Color3.fromRGB(212,175,100),GdD=Color3.fromRGB(160,130,70),
+Sc=Color3.fromRGB(80,220,120),Er=Color3.fromRGB(230,80,80),Ac=Color3.fromRGB(90,170,250),Wr=Color3.fromRGB(240,180,60),
+Bor=Color3.fromRGB(50,42,32)}
+local function C(p,r) local c=Instance.new("UICorner")c.CornerRadius=UDim.new(0,r or 8)c.Parent=p return c end
+local function S(p,c,t,tr) local s=Instance.new("UIStroke")s.Color=c s.Thickness=t or 1 s.Transparency=tr or 0 s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border s.Parent=p return s end
+local function G(p,c1,c2,r) local g=Instance.new("UIGradient")g.Color=ColorSequence.new(c1,c2)g.Rotation=r or 90 g.Parent=p return g end
+local function SD(id,v,pi) pcall(function() local s=Instance.new("Sound")s.SoundId=id s.Volume=v or 0.35 s.PlaybackSpeed=pi or 1 s.Parent=SS s:Play()game:GetService("Debris"):AddItem(s,3)end)end
+local function hov() SD("rbxassetid://5810725781",0.2,1.15) end
+local function clk() SD("rbxassetid://6895094670",0.35,1.1) end
+local function err() SD("rbxassetid://9114419659",0.4,0.85) end
+local function suc() SD("rbxassetid://9125402735",0.4,1) end
+for _,n in ipairs({"PBL_Key","PBL_Main","PBL_Notif"}) do local o=CG:FindFirstChild(n)if o then o:Destroy()end end
+local function notif(msg,cor) pcall(function()local o=CG:FindFirstChild("PBL_Notif")if o then o:Destroy()end
+local g=Instance.new("ScreenGui")g.Name="PBL_Notif"g.Parent=CG g.IgnoreGuiInset=true g.DisplayOrder=9999
+local f=Instance.new("Frame")f.Size=UDim2.new(0,300,0,48)f.Position=UDim2.new(0.5,-150,0,25)f.BackgroundColor3=T.Cd f.BorderSizePixel=0 f.Parent=g C(f,10)S(f,cor,1.5,0.3)
+local b=Instance.new("Frame")b.Size=UDim2.new(0,3,1,0)b.BackgroundColor3=cor b.BorderSizePixel=0 b.Parent=f C(b,10)
+local l=Instance.new("TextLabel")l.Size=UDim2.new(1,-25,1,0)l.Position=UDim2.new(0,18,0,0)l.BackgroundTransparency=1 l.Text=msg l.TextColor3=T.Tx l.TextSize=12 l.Font=Enum.Font.GothamMedium l.TextXAlignment=Enum.TextXAlignment.Left l.Parent=f
+task.delay(3,function()if g then g:Destroy()end end)end)end
+local FN={}
+FN.chilli=function()pcall(function()loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))()end)end
+FN.miranda_afk=function()pcall(function()loadstring(game:HttpGet("https://raw.githubusercontent.com/miirandahub/loader/refs/heads/main/mirandaafk.lua"))()end)end
+FN.miranda_steal=function()pcall(function()loadstring(game:HttpGet("https://raw.githubusercontent.com/miirandahub/loader/refs/heads/main/stealaeggs"))()end)end
+FN.lennon_farm=function()pcall(function()loadstring(game:HttpGet("https://raw.githubusercontent.com/lennonxscripts/lennonfarm/refs/heads/main/farmv1.lua"))()end)end
+FN.lennon_steal=function()pcall(function()loadstring(game:HttpGet("https://raw.githubusercontent.com/lennonxscripts/lennonhubv3/refs/heads/main/stealanegg.lua"))()end)end
+FN.rejoin=function()notif("Reconectando...",T.Ac)task.wait(0.5)TP:Teleport(game.PlaceId,LP)end
+FN.fullbright=function()pcall(function()LG.Ambient=Color3.fromRGB(255,255,255)LG.Brightness=2 end)notif("Fullbright ativado",T.Sc)end
+FN.reset=function()pcall(function()LP.Character.Humanoid.Health=0 end)notif("Resetado",T.Er)end
+FN.speed=function()pcall(function()LP.Character.Humanoid.WalkSpeed=math.random(45,55)end)notif("Speed ativado",T.Sc)end
+FN.noclip=function()pcall(function()for _,p in ipairs(LP.Character:GetDescendants())do if p:IsA("BasePart")then p.CanCollide=false end end end)notif("Noclip ativado",T.Wr)end
+FN.fly=function()pcall(function()local h=LP.Character.HumanoidRootPart local b=Instance.new("BodyVelocity")b.MaxForce=Vector3.new(1e5,1e5,1e5)b.Velocity=Vector3.new(0,50,0)b.Parent=h task.delay(5,function()b:Destroy()end)end)notif("Voando 5s",T.Ac)end
+FN.hide=function()for _,p in ipairs(PL:GetPlayers())do if p~=LP and p.Character then for _,o in ipairs(p.Character:GetDescendants())do if o:IsA("BasePart")then o.LocalTransparencyModifier=1 end end end end notif("Jogadores escondidos",T.Ac)end
+FN.antiafk=function()pcall(function()LP.Idled:Connect(function()task.wait(math.random(3,8))VU:CaptureController()VU:ClickButton2(Vector2.new())end)end)notif("Anti-AFK ativado",T.Sc)end
+FN.fps=function()pcall(function()for _,o in ipairs(workspace:GetDescendants())do if o:IsA("ParticleEmitter")or o:IsA("Trail")then o.Enabled=false end end end)notif("FPS Boost ativado",T.Wr)end
+FN.ping=function()local p=math.floor(ST.Network.ServerStatsItem["Data Ping"]:GetValue())notif("Ping: "..p.."ms",p<100 and T.Sc or T.Wr)end
+FN.antivoid=function()notif("Anti-Void ativado",T.Sc)task.spawn(function()while true do pcall(function()local c=LP.Character if not c then return end local h=c:FindFirstChild("HumanoidRootPart")if h and h.Position.Y<-50 then h.CFrame=CFrame.new(0,50,0)notif("Anti-Void salvou voce!",T.Wr)end end)task.wait(math.random(2,5))end end)end
+FN.social=function()pcall(function()for _,p in ipairs(PL:GetPlayers())do if p~=LP then LP:RequestFriendship(p)end end end)notif("Pedidos enviados",T.Ac)end
+FN.clear=function()for _,n in ipairs({"PBL_Notif","PBL_Confirm"})do local o=CG:FindFirstChild(n)if o then o:Destroy()end end notif("Tudo fechado",T.Er)end
+
+-- ═══ TELA DE KEY ═══
+local kG=Instance.new("ScreenGui")kG.Name="PBL_Key"kG.Parent=CG kG.IgnoreGuiInset=true kG.DisplayOrder=100
+local kO=Instance.new("Frame")kO.Size=UDim2.new(1,0,1,0)kO.BackgroundColor3=Color3.fromRGB(0,0,0)kO.BackgroundTransparency=0.55 kO.BorderSizePixel=0 kO.Parent=kG
+local kF=Instance.new("Frame")kF.Size=UDim2.new(0,420,0,270)kF.Position=UDim2.new(0.5,-210,0.5,-135)kF.BackgroundColor3=T.Bg kF.BorderSizePixel=0 kF.Parent=kG C(kF,14)G(kF,T.Bg2,T.Bg,90)S(kF,T.Gd,1.5,0.3)
+local kIT=Instance.new("TextLabel")kIT.Size=UDim2.new(0,40,0,12)kIT.Position=UDim2.new(0,0,1,-18)kIT.BackgroundTransparency=1 kIT.Text="by "..CFG.Criador kIT.TextColor3=T.TxD kIT.TextSize=9 kIT.Font=Enum.Font.Gotham kIT.Parent=kF
+local kI=Instance.new("Frame")kI.Size=UDim2.new(0,68,0,68)kI.Position=UDim2.new(0.5,-34,0,25)kI.BackgroundColor3=T.Cd kI.BorderSizePixel=0 kI.Parent=kF C(kI,34)S(kI,T.Gd,2,0.1)G(kI,T.Cd,T.Cd2,45)
+local kIT2=Instance.new("TextLabel")kIT2.Size=UDim2.new(1,0,1,0)kIT2.BackgroundTransparency=1 kIT2.Text="PBL"kIT2.TextColor3=T.Gd kIT2.TextSize=24 kIT2.Font=Enum.Font.GothamBlack kIT2.Parent=kI
+local kT=Instance.new("TextLabel")kT.Size=UDim2.new(1,0,0,30)kT.Position=UDim2.new(0,0,0,105)kT.BackgroundTransparency=1 kT.Text="PBL HUB"kT.TextColor3=T.Tx kT.TextSize=22 kT.Font=Enum.Font.GothamBlack kT.Parent=kF
+local kS=Instance.new("TextLabel")kS.Size=UDim2.new(1,0,0,18)kS.Position=UDim2.new(0,0,0,135)kS.BackgroundTransparency=1 kS.Text="Digite sua key para acessar"kS.TextColor3=T.TxD kS.TextSize=11 kS.Font=Enum.Font.Gotham kS.Parent=kF
+local kIB=Instance.new("Frame")kIB.Size=UDim2.new(1,-80,0,44)kIB.Position=UDim2.new(0,40,0,170)kIB.BackgroundColor3=T.Sb kIB.BorderSizePixel=0 kIB.Parent=kF C(kIB,8)S(kIB,T.Bor,1,0.3)
+local kIn=Instance.new("TextBox")kIn.Size=UDim2.new(1,-20,1,0)kIn.Position=UDim2.new(0,10,0,0)kIn.BackgroundTransparency=1 kIn.Text=""kIn.PlaceholderText="Key..."kIn.PlaceholderColor3=T.TxD kIn.TextColor3=T.Tx kIn.TextSize=13 kIn.Font=Enum.Font.GothamMedium kIn.ClearTextOnFocus=false kIn.Parent=kIB
+local kBtn=Instance.new("TextButton")kBtn.Size=UDim2.new(1,-80,0,42)kBtn.Position=UDim2.new(0,40,1,-62)kBtn.BackgroundColor3=T.Gd kBtn.Text="ACESSAR"kBtn.TextColor3=Color3.fromRGB(22,18,10)kBtn.Font=Enum.Font.GothamBold kBtn.TextSize=13 kBtn.BorderSizePixel=0 kBtn.AutoButtonColor=false kBtn.Parent=kF C(kBtn,8)
+kBtn.MouseEnter:Connect(function()hov()TS:Create(kBtn,TweenInfo.new(0.15),{BackgroundColor3=Color3.fromRGB(235,200,120)}):Play()end)
+kBtn.MouseLeave:Connect(function()TS:Create(kBtn,TweenInfo.new(0.15),{BackgroundColor3=T.Gd}):Play()end)
+
+-- ═══ PAINEL ═══
+local function Painel()
+local g=Instance.new("ScreenGui")g.Name="PBL_Main"g.Parent=CG g.IgnoreGuiInset=true g.DisplayOrder=400
+local M=Instance.new("Frame")M.Size=UDim2.new(0,780,0,520)M.Position=UDim2.new(0.5,-390,0.5,-260)M.BackgroundColor3=T.Bg M.BorderSizePixel=0 M.Active=true M.Draggable=true M.Parent=g C(M,14)G(M,T.Bg2,T.Bg,90)S(M,T.Gd,1.5,0.3)
+-- header
+local H=Instance.new("Frame")H.Size=UDim2.new(1,0,0,68)H.BackgroundColor3=T.Bg2 H.BorderSizePixel=0 H.Parent=M C(H,14)G(H,T.Bg2,T.Bg,90)
+local HFx=Instance.new("Frame")HFx.Size=UDim2.new(1,0,0,20)HFx.Position=UDim2.new(0,0,1,-20)HFx.BackgroundColor3=T.Bg HFx.BorderSizePixel=0 HFx.Parent=H
+local HL=Instance.new("Frame")HL.Size=UDim2.new(1,0,0,1)HL.Position=UDim2.new(0,0,1,-1)HL.BackgroundColor3=T.Gd HL.BackgroundTransparency=0.5 HL.BorderSizePixel=0 HL.Parent=H
+local LB=Instance.new("Frame")LB.Size=UDim2.new(0,42,0,42)LB.Position=UDim2.new(0,18,0,13)LB.BackgroundColor3=T.Cd LB.BorderSizePixel=0 LB.Parent=H C(LB,21)S(LB,T.Gd,1.5,0.2)G(LB,T.Cd,T.Cd2,45)
+local LT=Instance.new("TextLabel")LT.Size=UDim2.new(1,0,1,0)LT.BackgroundTransparency=1 LT.Text="PBL"LT.TextColor3=T.Gd LT.TextSize=14 LT.Font=Enum.Font.GothamBlack LT.Parent=LB
+local Ti=Instance.new("TextLabel")Ti.Size=UDim2.new(0.5,0,0,24)Ti.Position=UDim2.new(0,72,0,14)Ti.BackgroundTransparency=1 Ti.Text="PBL HUB"Ti.TextColor3=T.Tx Ti.TextSize=18 Ti.Font=Enum.Font.GothamBlack Ti.TextXAlignment=Enum.TextXAlignment.Left Ti.Parent=H
+local Su=Instance.new("TextLabel")Su.Size=UDim2.new(0.5,0,0,16)Su.Position=UDim2.new(0,72,0,38)Su.BackgroundTransparency=1 Su.Text="Bem-vindo, "..CFG.Nome.."  •  "..CFG.Versao Su.TextColor3=T.TxD Su.TextSize=10 Su.Font=Enum.Font.Gotham Su.TextXAlignment=Enum.TextXAlignment.Left Su.Parent=H
+local Cr=Instance.new("TextLabel")Cr.Size=UDim2.new(0,200,0,20)Cr.Position=UDim2.new(1,-290,0,24)Cr.BackgroundTransparency=1 Cr.Text="by "..CFG.Criador Cr.TextColor3=T.Gd Cr.TextSize=11 Cr.Font=Enum.Font.GothamBold Cr.TextXAlignment=Enum.TextXAlignment.Right Cr.Parent=H
+local CB=Instance.new("TextButton")CB.Size=UDim2.new(0,26,0,26)CB.Position=UDim2.new(1,-38,0,20)CB.BackgroundColor3=Color3.fromRGB(220,60,60)CB.Text="×"CB.TextColor3=T.Tx CB.TextSize=14 CB.Font=Enum.Font.GothamBold CB.BorderSizePixel=0 CB.AutoButtonColor=false CB.Parent=H C(CB,7)
+CB.MouseEnter:Connect(function()hov()end)CB.MouseButton1Click:Connect(function()clk()g:Destroy()end)
+local MB=Instance.new("TextButton")MB.Size=UDim2.new(0,26,0,26)MB.Position=UDim2.new(1,-70,0,20)MB.BackgroundColor3=Color3.fromRGB(230,180,60)MB.Text="−"MB.TextColor3=Color3.fromRGB(22,18,10)MB.TextSize=14 MB.Font=Enum.Font.GothamBold MB.BorderSizePixel=0 MB.AutoButtonColor=false MB.Parent=H C(MB,7)
+MB.MouseEnter:Connect(function()hov()end)
+-- sidebar
+local Sb=Instance.new("Frame")Sb.Size=UDim2.new(0,115,1,-68)Sb.Position=UDim2.new(0,0,0,68)Sb.BackgroundColor3=T.Sb Sb.BorderSizePixel=0 Sb.Parent=M
+local SbL=Instance.new("Frame")SbL.Size=UDim2.new(0,1,1,0)SbL.Position=UDim2.new(1,-1,0,0)SbL.BackgroundColor3=T.Bor SbL.BorderSizePixel=0 SbL.Parent=Sb
+local SbLst=Instance.new("UIListLayout")SbLst.Padding=UDim.new(0,6)SbLst.HorizontalAlignment=Enum.HorizontalAlignment.Center SbLst.VerticalAlignment=Enum.VerticalAlignment.Top SbLst.SortOrder=Enum.SortOrder.LayoutOrder SbLst.Parent=Sb
+local SbP=Instance.new("UIPadding")SbP.PaddingTop=UDim.new(0,18)SbP.Parent=Sb
+local tabs={} local conts={}
+local function Tab(nome,ic,id,ord)
+local b=Instance.new("TextButton")b.Size=UDim2.new(0,92,0,58)b.BackgroundColor3=T.Cd b.BackgroundTransparency=1 b.Text=""b.BorderSizePixel=0 b.AutoButtonColor=false b.LayoutOrder=ord b.Parent=Sb C(b,10)
+local iL=Instance.new("TextLabel")iL.Size=UDim2.new(1,0,0,26)iL.Position=UDim2.new(0,0,0,8)iL.BackgroundTransparency=1 iL.Text=ic iL.TextSize=20 iL.Font=Enum.Font.GothamBold iL.TextColor3=T.TxD iL.Parent=b
+local nL=Instance.new("TextLabel")nL.Size=UDim2.new(1,0,0,14)nL.Position=UDim2.new(0,0,0,36)nL.BackgroundTransparency=1 nL.Text=nome nL.TextSize=9 nL.Font=Enum.Font.GothamBold nL.TextColor3=T.TxD nL.Parent=b
+b.MouseEnter:Connect(function()if tabs[id]then return end hov()TS:Create(b,TweenInfo.new(0.15),{BackgroundTransparency=0.6}):Play()TS:Create(iL,TweenInfo.new(0.15),{TextColor3=T.TxS}):Play()end)
+b.MouseLeave:Connect(function()if tabs[id]then return end TS:Create(b,TweenInfo.new(0.15),{BackgroundTransparency=1}):Play()TS:Create(iL,TweenInfo.new(0.15),{TextColor3=T.TxD}):Play()end)
+b.MouseButton1Click:Connect(function()clk()
+for k,v in pairs(tabs)do local tb=v.btn local ti=v.ic local tn=v.nm tabs[k]=nil TS:Create(tb,TweenInfo.new(0.15),{BackgroundTransparency=1,BackgroundColor3=T.Cd}):Play()TS:Create(ti,TweenInfo.new(0.15),{TextColor3=T.TxD}):Play()TS:Create(tn,TweenInfo.new(0.15),{TextColor3=T.TxD}):Play()end
+tabs[id]={btn=b,ic=iL,nm=nL}
+TS:Create(b,TweenInfo.new(0.15),{BackgroundTransparency=0,BackgroundColor3=T.SbA}):Play()
+TS:Create(iL,TweenInfo.new(0.15),{TextColor3=T.Gd}):Play()TS:Create(nL,TweenInfo.new(0.15),{TextColor3=T.Tx}):Play()
+for k,f in pairs(conts)do f.Visible=(k==id)end end)end
+Tab("SCRIPTS","📜","scripts",1)Tab("UTILS","🔧","utils",2)Tab("COMBAT","⚔","combat",3)Tab("INFO","ℹ","info",4)
+-- content
+local Cnt=Instance.new("Frame")Cnt.Size=UDim2.new(1,-115,1,-68)Cnt.Position=UDim2.new(0,115,0,68)Cnt.BackgroundTransparency=1 Cnt.Parent=M
+local function Cont(id,tit,sub)
+local f=Instance.new("Frame")f.Size=UDim2.new(1,0,1,0)f.BackgroundTransparency=1 f.Visible=(id=="scripts")f.Parent=Cnt conts[id]=f
+local iH=Instance.new("Frame")iH.Size=UDim2.new(1,-30,0,50)iH.Position=UDim2.new(0,20,0,15)iH.BackgroundTransparency=1 iH.Parent=f
+local hI=Instance.new("TextLabel")hI.Size=UDim2.new(0,22,0,22)hI.Position=UDim2.new(0,0,0,4)hI.BackgroundTransparency=1 hI.Text="▤"hI.TextSize=18 hI.Font=Enum.Font.GothamBold hI.TextColor3=T.Gd hI.TextXAlignment=Enum.TextXAlignment.Left hI.Parent=iH
+local hT=Instance.new("TextLabel")hT.Size=UDim2.new(1,-30,0,22)hT.Position=UDim2.new(0,30,0,4)hT.BackgroundTransparency=1 hT.Text=tit hT.TextColor3=T.Tx hT.TextSize=15 hT.Font=Enum.Font.GothamBlack hT.TextXAlignment=Enum.TextXAlignment.Left hT.Parent=iH
+local hS=Instance.new("TextLabel")hS.Size=UDim2.new(1,-30,0,14)hS.Position=UDim2.new(0,30,0,26)hS.BackgroundTransparency=1 hS.Text=sub hS.TextColor3=T.TxD hS.TextSize=10 hS.Font=Enum.Font.Gotham hS.TextXAlignment=Enum.TextXAlignment.Left hS.Parent=iH
+local sc=Instance.new("ScrollingFrame")sc.Size=UDim2.new(1,-30,1,-85)sc.Position=UDim2.new(0,15,0,75)sc.BackgroundTransparency=1 sc.BorderSizePixel=0 sc.ScrollBarThickness=3 sc.ScrollBarImageColor3=T.Gd sc.CanvasSize=UDim2.new(0,0,0,0)sc.Parent=f
+local gr=Instance.new("UIGridLayout")gr.CellSize=UDim2.new(0,300,0,110)gr.CellPadding=UDim2.new(0,10,0,10)gr.SortOrder=Enum.SortOrder.LayoutOrder gr.Parent=sc
+gr:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()sc.CanvasSize=UDim2.new(0,0,0,gr.AbsoluteContentSize.Y+10)end)
+return sc end
+local scS=Cont("scripts","SCRIPT LIST","Selecione um script para executar")
+local scU=Cont("utils","UTILIDADES","Ferramentas úteis")
+local scC=Cont("combat","COMBATE","Funções de combate")
+local scI=Cont("info","INFORMAÇÕES","Sobre o PBL HUB")
+local function Card(par,nome,sub,ic,ci,acao,ord)
+local Cd=Instance.new("Frame")Cd.Size=UDim2.new(1,0,0,110)Cd.BackgroundColor3=T.Cd Cd.BorderSizePixel=0 Cd.LayoutOrder=ord Cd.Parent=par C(Cd,10)G(Cd,T.Cd,T.Cd2,90)local cs=S(Cd,T.Bor,1,0.5)
+local iC=Instance.new("Frame")iC.Size=UDim2.new(0,42,0,42)iC.Position=UDim2.new(0,14,0,14)iC.BackgroundColor3=ci iC.BackgroundTransparency=0.85 iC.BorderSizePixel=0 iC.Parent=Cd C(iC,21)S(iC,ci,1.5,0.2)
+local iL=Instance.new("TextLabel")iL.Size=UDim2.new(1,0,1,0)iL.BackgroundTransparency=1 iL.Text=ic iL.TextSize=22 iL.Font=Enum.Font.GothamBold iL.TextColor3=ci iL.Parent=iC
+local nL=Instance.new("TextLabel")nL.Size=UDim2.new(1,-75,0,20)nL.Position=UDim2.new(0,66,0,16)nL.BackgroundTransparency=1 nL.Text=nome nL.TextColor3=T.Tx nL.TextSize=12 nL.Font=Enum.Font.GothamBlack nL.TextXAlignment=Enum.TextXAlignment.Left nL.Parent=Cd
+local sL=Instance.new("TextLabel")sL.Size=UDim2.new(1,-75,0,14)sL.Position=UDim2.new(0,66,0,38)sL.BackgroundTransparency=1 sL.Text=sub sL.TextColor3=T.TxD sL.TextSize=10 sL.Font=Enum.Font.Gotham sL.TextXAlignment=Enum.TextXAlignment.Left sL.Parent=Cd
+local aB=Instance.new("TextButton")aB.Size=UDim2.new(1,-28,0,32)aB.Position=UDim2.new(0,14,1,-46)aB.BackgroundColor3=T.Sb aB.Text="EXECUTE"aB.TextColor3=T.TxS aB.TextSize=11 aB.Font=Enum.Font.GothamBold aB.BorderSizePixel=0 aB.AutoButtonColor=false aB.Parent=Cd C(aB,7)S(aB,T.Bor,1,0.4)
+aB.MouseEnter:Connect(function()hov()TS:Create(aB,TweenInfo.new(0.15),{BackgroundColor3=T.CdH}):Play()TS:Create(cs,TweenInfo.new(0.15),{Color=ci,Transparency=0.2}):Play()TS:Create(aB,TweenInfo.new(0.15),{TextColor3=ci}):Play()end)
+aB.MouseLeave:Connect(function()TS:Create(aB,TweenInfo.new(0.15),{BackgroundColor3=T.Sb}):Play()TS:Create(cs,TweenInfo.new(0.15),{Color=T.Bor,Transparency=0.5}):Play()TS:Create(aB,TweenInfo.new(0.15),{TextColor3=T.TxS}):Play()end)
+aB.MouseButton1Click:Connect(function()clk()if acao then local ok=pcall(acao)if not ok then err()else suc()end end TS:Create(aB,TweenInfo.new(0.1),{BackgroundColor3=ci,TextColor3=T.Tx}):Play()task.wait(0.2)TS:Create(aB,TweenInfo.new(0.2),{BackgroundColor3=T.Sb,TextColor3=T.TxS}):Play()end)end
+Card(scS,"CHILLI AURA","Aura visual","◉",Color3.fromRGB(240,60,90),FN.chilli,1)
+Card(scS,"MIRANDA AFK","Farm AFK automatico","◉",Color3.fromRGB(70,170,240),FN.miranda_afk,2)
+Card(scS,"MIRANDA STEAL","Auto steal eggs","◈",Color3.fromRGB(90,180,255),FN.miranda_steal,3)
+Card(scS,"LENNON FARM","Farm principal","◉",Color3.fromRGB(180,80,250),FN.lennon_farm,4)
+Card(scS,"LENNON STEAL","Farm melhorado","◈",Color3.fromRGB(200,100,255),FN.lennon_steal,5)
+Card(scU,"REJOIN","Reconectar servidor","↻",T.Ac,FN.rejoin,1)
+Card(scU,"FULLBRIGHT","Iluminar mapa","☀",T.Wr,FN.fullbright,2)
+Card(scU,"RESET","Resetar personagem","↺",T.Er,FN.reset,3)
+Card(scU,"SPEED LEVE","Velocidade 45-55","»",T.Sc,FN.speed,4)
+Card(scU,"NOCLIP","Atravessa paredes","◌",T.Wr,FN.noclip,5)
+Card(scU,"FLY 5s","Voar por 5 segundos","✈",T.Ac,FN.fly,6)
+Card(scU,"HIDE PLAYERS","Esconder jogadores","◐",T.Ac,FN.hide,7)
+Card(scU,"ANTI-AFK","Evita kick","☾",T.Er,FN.antiafk,8)
+Card(scU,"FPS BOOST","Melhorar performance","⚡",T.Wr,FN.fps,9)
+Card(scU,"VER PING","Latencia atual","📡",T.Sc,FN.ping,10)
+Card(scU,"FECHAR TUDO","Limpar interfaces","✕",T.Er,FN.clear,11)
+Card(scC,"ANTI-VOID","Salva se cair do mapa","🛡",T.Sc,FN.antivoid,1)
+Card(scC,"ADD ALL FRIENDS","Enviar pedidos","👥",T.Ac,FN.social,2)
+local inf=Instance.new("Frame")inf.Size=UDim2.new(1,0,0,220)inf.BackgroundColor3=T.Cd inf.BorderSizePixel=0 inf.Parent=scI C(inf,10)S(inf,T.Gd,1,0.3)G(inf,T.Cd,T.Cd2,90)
+local infL=Instance.new("TextLabel")infL.Size=UDim2.new(1,-30,1,-30)infL.Position=UDim2.new(0,15,0,15)infL.BackgroundTransparency=1 infL.Text="PBL HUB  "..CFG.Versao.."\n\nCriado por "..CFG.Criador.."\n\nUsuario: "..CFG.Nome.."\nData: "..os.date("%d/%m/%Y").."\n\nObrigado por usar!"infL.TextColor3=T.TxS infL.TextSize=12 infL.Font=Enum.Font.Gotham infL.TextXAlignment=Enum.TextXAlignment.Left infL.TextYAlignment=Enum.TextYAlignment.Top infL.Parent=inf end
+local ver=false
+local function verificar()
+if ver then return end ver=true
+if kIn.Text==CFG.Key then suc()kBtn.Text="✓ CORRETA"task.wait(0.4)pcall(function()kG:Destroy()end)task.wait(0.2)
+local ok=pcall(Painel)if ok then notif("Bem-vindo ao PBL HUB!",T.Sc)else notif("Erro ao criar painel",T.Er)end
+ver=false else err()kBtn.Text="✕ INVALIDA"kIn.Text=""task.wait(1.2)kBtn.Text="ACESSAR"ver=false end end
+kBtn.MouseButton1Click:Connect(verificar)
+kIn.FocusLost:Connect(function(e)if e then verificar()end end)
+print("[PBL HUB] Aguardando key... (key: "..CFG.Key..")")
