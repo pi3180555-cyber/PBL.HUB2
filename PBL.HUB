@@ -1,0 +1,272 @@
+-- PBL HUB v3.0 - Key: PBL2026
+local CoreGui = game:GetService("CoreGui")
+local TweenSvc = game:GetService("TweenService")
+local SoundSvc = game:GetService("SoundService")
+local Players = game:GetService("Players")
+local RunSvc = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local Stats = game:GetService("Stats")
+local Lighting = game:GetService("Lighting")
+local Teleport = game:GetService("TeleportService")
+local HttpSvc = game:GetService("HttpService")
+local VUser = game:GetService("VirtualUser")
+local LP = Players.LocalPlayer
+
+local CONFIG = {Key = "PBL2026", Nome = LP.Name, Versao = "v3.0", DiscordLink = "https://discord.gg/x"}
+
+local T = {
+    Bg = Color3.fromRGB(28,28,32), Bg2 = Color3.fromRGB(38,38,42),
+    Sb = Color3.fromRGB(22,22,26), SbA = Color3.fromRGB(45,45,50),
+    Cd = Color3.fromRGB(52,52,58), Cd2 = Color3.fromRGB(38,38,43),
+    CdH = Color3.fromRGB(62,62,70), Tx = Color3.fromRGB(245,245,248),
+    TxD = Color3.fromRGB(150,150,160), TxS = Color3.fromRGB(190,190,200),
+    Gd = Color3.fromRGB(212,175,100), Sc = Color3.fromRGB(80,220,120),
+    Er = Color3.fromRGB(255,90,100), Ac = Color3.fromRGB(100,180,255),
+    Wr = Color3.fromRGB(255,190,60)
+}
+
+local function cor(p,r) local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 10);c.Parent=p;return c end
+local function str(p,c,t,tr) local s=Instance.new("UIStroke");s.Color=c;s.Thickness=t or 1;s.Transparency=tr or 0;s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;s.Parent=p;return s end
+local function grd(p,c1,c2,r) local g=Instance.new("UIGradient");g.Color=ColorSequence.new(c1,c2);g.Rotation=r or 90;g.Parent=p;return g end
+local function snd(id,v,pi) pcall(function() local s=Instance.new("Sound");s.SoundId=id;s.Volume=v or 0.35;s.PlaybackSpeed=pi or 1;s.Parent=SoundSvc;s:Play();game:GetService("Debris"):AddItem(s,3) end) end
+local function sHover() snd("rbxassetid://5810725781",0.22,1.15) end
+local function sClick() snd("rbxassetid://6895094670",0.35,1.1) end
+local function sToggle() snd("rbxassetid://6895094670",0.4,1.3) end
+local function sErr() snd("rbxassetid://9114419659",0.4,0.85) end
+local function sSuc() snd("rbxassetid://9125402735",0.4,1) end
+
+for _,n in ipairs({"PBL_Key","PBL_Main","PBL_Notif"}) do local o=CoreGui:FindFirstChild(n);if o then o:Destroy() end end
+
+local function notificar(msg,cor)
+    pcall(function()
+        local old=CoreGui:FindFirstChild("PBL_Notif");if old then old:Destroy() end
+        local g=Instance.new("ScreenGui");g.Name="PBL_Notif";g.Parent=CoreGui;g.IgnoreGuiInset=true;g.DisplayOrder=9999
+        local f=Instance.new("Frame");f.Size=UDim2.new(0,320,0,50);f.Position=UDim2.new(0.5,-160,0,25);f.BackgroundColor3=T.Cd;f.BorderSizePixel=0;f.Parent=g
+        cor(f,10);str(f,cor,1.5,0.3)
+        local b=Instance.new("Frame");b.Size=UDim2.new(0,3,1,0);b.BackgroundColor3=cor;b.BorderSizePixel=0;b.Parent=f;cor(b,10)
+        local l=Instance.new("TextLabel");l.Size=UDim2.new(1,-25,1,0);l.Position=UDim2.new(0,18,0,0);l.BackgroundTransparency=1;l.Text=msg;l.TextColor3=T.Tx;l.TextSize=12;l.Font=Enum.Font.GothamMedium;l.TextXAlignment=Enum.TextXAlignment.Left;l.Parent=f
+        task.delay(3,function() if g then g:Destroy() end end)
+    end)
+end
+
+local funcoes = {
+    chilli = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"))() end) end,
+    miranda_afk = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/miirandahub/loader/refs/heads/main/mirandaafk.lua"))() end) end,
+    miranda_steal = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/miirandahub/loader/refs/heads/main/stealaeggs"))() end) end,
+    lennon_farm = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/lennonxscripts/lennonfarm/refs/heads/main/farmv1.lua"))() end) end,
+    lennon_steal = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/lennonxscripts/lennonhubv3/refs/heads/main/stealanegg.lua"))() end) end,
+    rejoin = function() notificar("Reconectando...",T.Ac); task.wait(0.5); Teleport:Teleport(game.PlaceId,LP) end,
+    hop = function() notificar("Procurando servidor...",T.Ac); pcall(function() local s=HttpSvc:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")); for _,sv in ipairs(s.data) do if sv.id~=game.JobId and sv.playing<sv.maxPlayers then Teleport:TeleportToPlaceInstance(game.PlaceId,sv.id,LP); return end end end) end,
+    fullbright = function() pcall(function() Lighting.Ambient=Color3.fromRGB(255,255,255);Lighting.Brightness=2 end); notificar("Fullbright ON",T.Sc) end,
+    reset = function() pcall(function() LP.Character.Humanoid.Health=0 end); notificar("Resetado",T.Er) end,
+    speed = function() pcall(function() LP.Character.Humanoid.WalkSpeed=math.random(45,55) end); notificar("Speed ativado",T.Sc) end,
+    noclip = function() pcall(function() for _,p in ipairs(LP.Character:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide=false end end end); notificar("Noclip ON",T.Wr) end,
+    fly = function() pcall(function() local h=LP.Character.HumanoidRootPart;local b=Instance.new("BodyVelocity");b.MaxForce=Vector3.new(1e5,1e5,1e5);b.Velocity=Vector3.new(0,50,0);b.Parent=h;task.delay(5,function() b:Destroy() end) end); notificar("Voando 5s",T.Ac) end,
+    hide = function() for _,p in ipairs(Players:GetPlayers()) do if p~=LP and p.Character then for _,o in ipairs(p.Character:GetDescendants()) do if o:IsA("BasePart") then o.LocalTransparencyModifier=1 end end end end; notificar("Players escondidos",T.Ac) end,
+    antiafk = function() pcall(function() LP.Idled:Connect(function() task.wait(math.random(3,8));VUser:CaptureController();VUser:ClickButton2(Vector2.new()) end) end); notificar("Anti-AFK ON",T.Sc) end,
+    fpsboost = function() pcall(function() for _,o in ipairs(workspace:GetDescendants()) do if o:IsA("ParticleEmitter") or o:IsA("Trail") then o.Enabled=false end end end); notificar("FPS Boost ON",T.Wr) end,
+    ping = function() local p=math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue()); notificar("Ping: "..p.."ms", p<100 and T.Sc or T.Wr) end,
+    userid = function() pcall(function() if setclipboard then setclipboard(tostring(LP.UserId)) end end); notificar("ID copiado",T.Ac) end,
+    antivoid = function() notificar("Anti-Void ON",T.Sc); task.spawn(function() while true do pcall(function() local c=LP.Character;if not c then return end;local h=c:FindFirstChild("HumanoidRootPart");if h and h.Position.Y<-50 then h.CFrame=CFrame.new(0,50,0);notificar("Anti-Void salvou!",T.Wr) end end);task.wait(math.random(2,5)) end end) end,
+    social = function() pcall(function() for _,p in ipairs(Players:GetPlayers()) do if p~=LP then LP:RequestFriendship(p) end end end); notificar("Amigos enviados",T.Ac) end,
+    fechartudo = function() for _,n in ipairs({"PBL_Notif","PBL_Confirm"}) do local o=CoreGui:FindFirstChild(n);if o then o:Destroy() end end; notificar("Tudo fechado",T.Er) end,
+    sobre = function() notificar("PBL HUB "..CONFIG.Versao,T.Ac) end
+}
+
+-- TELA DE KEY
+local keyGui = Instance.new("ScreenGui")
+keyGui.Name = "PBL_Key"; keyGui.Parent = CoreGui; keyGui.IgnoreGuiInset = true; keyGui.DisplayOrder = 100
+
+local kOv = Instance.new("Frame"); kOv.Size = UDim2.new(1,0,1,0); kOv.BackgroundColor3 = Color3.fromRGB(0,0,0); kOv.BackgroundTransparency = 0.5; kOv.BorderSizePixel = 0; kOv.Parent = keyGui
+
+local kF = Instance.new("Frame"); kF.Size = UDim2.new(0,420,0,250); kF.Position = UDim2.new(0.5,-210,0.5,-125); kF.BackgroundColor3 = T.Bg; kF.BorderSizePixel = 0; kF.Parent = keyGui
+cor(kF,12); grd(kF,T.Bg2,T.Bg,90); str(kF,T.Gd,1.5,0.4)
+
+local kI = Instance.new("Frame"); kI.Size = UDim2.new(0,64,0,64); kI.Position = UDim2.new(0.5,-32,0,25); kI.BackgroundColor3 = T.Cd; kI.BorderSizePixel = 0; kI.Parent = kF
+cor(kI,32); str(kI,T.Gd,2,0.2)
+
+local kIT = Instance.new("TextLabel"); kIT.Size = UDim2.new(1,0,1,0); kIT.BackgroundTransparency = 1; kIT.Text = "PBL"; kIT.TextColor3 = T.Gd; kIT.TextSize = 22; kIT.Font = Enum.Font.GothamBlack; kIT.Parent = kI
+
+local kT = Instance.new("TextLabel"); kT.Size = UDim2.new(1,0,0,30); kT.Position = UDim2.new(0,0,0,100); kT.BackgroundTransparency = 1; kT.Text = "PBL HUB"; kT.TextColor3 = T.Tx; kT.TextSize = 22; kT.Font = Enum.Font.GothamBlack; kT.Parent = kF
+
+local kS = Instance.new("TextLabel"); kS.Size = UDim2.new(1,0,0,18); kS.Position = UDim2.new(0,0,0,130); kS.BackgroundTransparency = 1; kS.Text = "Digite sua key"; kS.TextColor3 = T.TxD; kS.TextSize = 11; kS.Font = Enum.Font.Gotham; kS.Parent = kF
+
+local kIB = Instance.new("Frame"); kIB.Size = UDim2.new(1,-80,0,42); kIB.Position = UDim2.new(0,40,0,160); kIB.BackgroundColor3 = T.Sb; kIB.BorderSizePixel = 0; kIB.Parent = kF
+cor(kIB,8); str(kIB,T.Cd,1,0.4)
+
+local kIn = Instance.new("TextBox"); kIn.Size = UDim2.new(1,-20,1,0); kIn.Position = UDim2.new(0,10,0,0); kIn.BackgroundTransparency = 1; kIn.Text = ""; kIn.PlaceholderText = "Digite a key..."; kIn.PlaceholderColor3 = T.TxD; kIn.TextColor3 = T.Tx; kIn.TextSize = 13; kIn.Font = Enum.Font.GothamMedium; kIn.ClearTextOnFocus = false; kIn.Parent = kIB
+
+local kBtn = Instance.new("TextButton"); kBtn.Size = UDim2.new(1,-80,0,40); kBtn.Position = UDim2.new(0,40,1,-55); kBtn.BackgroundColor3 = T.Gd; kBtn.Text = "ACESSAR"; kBtn.TextColor3 = Color3.fromRGB(25,25,30); kBtn.Font = Enum.Font.GothamBold; kBtn.TextSize = 13; kBtn.BorderSizePixel = 0; kBtn.AutoButtonColor = false; kBtn.Parent = kF
+cor(kBtn,8)
+kBtn.MouseEnter:Connect(function() sHover(); TweenSvc:Create(kBtn,TweenInfo.new(0.15),{BackgroundColor3=Color3.fromRGB(235,200,120)}):Play() end)
+kBtn.MouseLeave:Connect(function() TweenSvc:Create(kBtn,TweenInfo.new(0.15),{BackgroundColor3=T.Gd}):Play() end)
+
+-- PAINEL
+local function criarPainel()
+    local gui = Instance.new("ScreenGui"); gui.Name = "PBL_Main"; gui.Parent = CoreGui; gui.IgnoreGuiInset = true; gui.DisplayOrder = 400
+    
+    local Main = Instance.new("Frame"); Main.Size = UDim2.new(0,760,0,480); Main.Position = UDim2.new(0.5,-380,0.5,-240); Main.BackgroundColor3 = T.Bg; Main.BorderSizePixel = 0; Main.Active = true; Main.Draggable = true; Main.Parent = gui
+    cor(Main,14); grd(Main,T.Bg2,T.Bg,90); str(Main,T.Gd,1.5,0.3)
+    
+    -- HEADER
+    local H = Instance.new("Frame"); H.Size = UDim2.new(1,0,0,60); H.BackgroundColor3 = T.Bg; H.BackgroundTransparency = 0.3; H.BorderSizePixel = 0; H.Parent = Main; cor(H,14)
+    local HL = Instance.new("Frame"); HL.Size = UDim2.new(1,0,0,1); HL.Position = UDim2.new(0,0,1,-1); HL.BackgroundColor3 = T.Gd; HL.BackgroundTransparency = 0.6; HL.BorderSizePixel = 0; HL.Parent = H
+    
+    local LB = Instance.new("Frame"); LB.Size = UDim2.new(0,38,0,38); LB.Position = UDim2.new(0,15,0,11); LB.BackgroundColor3 = T.Cd; LB.BorderSizePixel = 0; LB.Parent = H
+    cor(LB,10); str(LB,T.Gd,1.5,0.2)
+    local LT = Instance.new("TextLabel"); LT.Size = UDim2.new(1,0,1,0); LT.BackgroundTransparency = 1; LT.Text = "PBL"; LT.TextColor3 = T.Gd; LT.TextSize = 13; LT.Font = Enum.Font.GothamBlack; LT.Parent = LB
+    
+    local Ti = Instance.new("TextLabel"); Ti.Size = UDim2.new(0.5,0,0,22); Ti.Position = UDim2.new(0,62,0,12); Ti.BackgroundTransparency = 1; Ti.Text = "PBL HUB"; Ti.TextColor3 = T.Tx; Ti.TextSize = 17; Ti.Font = Enum.Font.GothamBlack; Ti.TextXAlignment = Enum.TextXAlignment.Left; Ti.Parent = H
+    
+    local Sub = Instance.new("TextLabel"); Sub.Size = UDim2.new(0.5,0,0,16); Sub.Position = UDim2.new(0,62,0,34); Sub.BackgroundTransparency = 1; Sub.Text = CONFIG.Versao.."  |  Bem-vindo, "..CONFIG.Nome; Sub.TextColor3 = T.TxD; Sub.TextSize = 10; Sub.Font = Enum.Font.Gotham; Sub.TextXAlignment = Enum.TextXAlignment.Left; Sub.Parent = H
+    
+    local CloseB = Instance.new("TextButton"); CloseB.Size = UDim2.new(0,28,0,28); CloseB.Position = UDim2.new(1,-40,0,16); CloseB.BackgroundColor3 = Color3.fromRGB(220,60,60); CloseB.Text = "×"; CloseB.TextColor3 = T.Tx; CloseB.TextSize = 16; CloseB.Font = Enum.Font.GothamBold; CloseB.BorderSizePixel = 0; CloseB.AutoButtonColor = false; CloseB.Parent = H
+    cor(CloseB,8)
+    CloseB.MouseEnter:Connect(function() sHover() end)
+    CloseB.MouseButton1Click:Connect(function() sClick(); gui:Destroy() end)
+    
+    local MinB = Instance.new("TextButton"); MinB.Size = UDim2.new(0,28,0,28); MinB.Position = UDim2.new(1,-74,0,16); MinB.BackgroundColor3 = Color3.fromRGB(230,180,60); MinB.Text = "−"; MinB.TextColor3 = Color3.fromRGB(25,25,30); MinB.TextSize = 16; MinB.Font = Enum.Font.GothamBold; MinB.BorderSizePixel = 0; MinB.AutoButtonColor = false; MinB.Parent = H
+    cor(MinB,8)
+    MinB.MouseEnter:Connect(function() sHover() end)
+    
+    -- SIDEBAR
+    local Sb = Instance.new("Frame"); Sb.Size = UDim2.new(0,100,1,-60); Sb.Position = UDim2.new(0,0,0,60); Sb.BackgroundColor3 = T.Sb; Sb.BackgroundTransparency = 0.5; Sb.BorderSizePixel = 0; Sb.Parent = Main
+    local SbL = Instance.new("Frame"); SbL.Size = UDim2.new(0,1,1,0); SbL.Position = UDim2.new(1,-1,0,0); SbL.BackgroundColor3 = T.Cd; SbL.BackgroundTransparency = 0.5; SbL.BorderSizePixel = 0; SbL.Parent = Sb
+    local SbList = Instance.new("UIListLayout"); SbList.Padding = UDim.new(0,4); SbList.HorizontalAlignment = Enum.HorizontalAlignment.Center; SbList.Parent = Sb
+    local SbPad = Instance.new("UIPadding"); SbPad.PaddingTop = UDim.new(0,15); SbPad.Parent = Sb
+    
+    local tabsAtivas = {}
+    local conteudos = {}
+    
+    local function criarTab(nome, icone, id)
+        local btn = Instance.new("TextButton"); btn.Size = UDim2.new(0,82,0,58); btn.BackgroundColor3 = T.Sb; btn.BackgroundTransparency = 1; btn.Text = ""; btn.BorderSizePixel = 0; btn.AutoButtonColor = false; btn.Parent = Sb; cor(btn,8)
+        local iL = Instance.new("TextLabel"); iL.Size = UDim2.new(1,0,0,24); iL.Position = UDim2.new(0,0,0,8); iL.BackgroundTransparency = 1; iL.Text = icone; iL.TextSize = 20; iL.Font = Enum.Font.GothamBold; iL.TextColor3 = T.TxD; iL.Parent = btn
+        local nL = Instance.new("TextLabel"); nL.Size = UDim2.new(1,0,0,14); nL.Position = UDim2.new(0,0,0,36); nL.BackgroundTransparency = 1; nL.Text = nome; nL.TextSize = 9; nL.Font = Enum.Font.GothamBold; nL.TextColor3 = T.TxD; nL.Parent = btn
+        
+        btn.MouseEnter:Connect(function() if tabsAtivas[id] then return end; sHover(); TweenSvc:Create(btn,TweenInfo.new(0.15),{BackgroundTransparency=0.7}):Play() end)
+        btn.MouseLeave:Connect(function() if tabsAtivas[id] then return end; TweenSvc:Create(btn,TweenInfo.new(0.15),{BackgroundTransparency=1}):Play() end)
+        btn.MouseButton1Click:Connect(function()
+            sClick()
+            for k,v in pairs(tabsAtivas) do
+                local b,i,n = v.btn,v.icone,v.nome
+                tabsAtivas[k]=nil
+                TweenSvc:Create(b,TweenInfo.new(0.15),{BackgroundTransparency=1}):Play()
+                TweenSvc:Create(i,TweenInfo.new(0.15),{TextColor3=T.TxD}):Play()
+                TweenSvc:Create(n,TweenInfo.new(0.15),{TextColor3=T.TxD}):Play()
+            end
+            tabsAtivas[id] = {btn=btn,icone=iL,nome=nL}
+            TweenSvc:Create(btn,TweenInfo.new(0.15),{BackgroundTransparency=0}):Play()
+            TweenSvc:Create(btn,TweenInfo.new(0.15),{BackgroundColor3=T.SbA}):Play()
+            TweenSvc:Create(iL,TweenInfo.new(0.15),{TextColor3=T.Tx}):Play()
+            TweenSvc:Create(nL,TweenInfo.new(0.15),{TextColor3=T.Tx}):Play()
+            for k,f in pairs(conteudos) do f.Visible = (k==id) end
+        end)
+        return btn
+    end
+    
+    criarTab("SCRIPTS","📜","scripts")
+    criarTab("UTILS","🔧","utils")
+    criarTab("COMBAT","⚔","combat")
+    criarTab("INFO","ℹ","info")
+    
+    -- CONTENT
+    local C = Instance.new("Frame"); C.Size = UDim2.new(1,-100,1,-60); C.Position = UDim2.new(0,100,0,60); C.BackgroundTransparency = 1; C.Parent = Main
+    
+    local function criarConteudo(id,titulo,subtitulo)
+        local f = Instance.new("Frame"); f.Size = UDim2.new(1,0,1,0); f.BackgroundTransparency = 1; f.Visible = (id=="scripts"); f.Parent = C; conteudos[id] = f
+        local iH = Instance.new("Frame"); iH.Size = UDim2.new(1,-30,0,45); iH.Position = UDim2.new(0,15,0,10); iH.BackgroundTransparency = 1; iH.Parent = f
+        local hI = Instance.new("TextLabel"); hI.Size = UDim2.new(0,20,0,20); hI.Position = UDim2.new(0,0,0,5); hI.BackgroundTransparency = 1; hI.Text = "☰"; hI.TextSize = 18; hI.Font = Enum.Font.GothamBold; hI.TextColor3 = T.Tx; hI.TextXAlignment = Enum.TextXAlignment.Left; hI.Parent = iH
+        local hT = Instance.new("TextLabel"); hT.Size = UDim2.new(1,-30,0,20); hT.Position = UDim2.new(0,28,0,5); hT.BackgroundTransparency = 1; hT.Text = titulo; hT.TextColor3 = T.Tx; hT.TextSize = 15; hT.Font = Enum.Font.GothamBlack; hT.TextXAlignment = Enum.TextXAlignment.Left; hT.Parent = iH
+        local hS = Instance.new("TextLabel"); hS.Size = UDim2.new(1,-30,0,14); hS.Position = UDim2.new(0,28,0,26); hS.BackgroundTransparency = 1; hS.Text = subtitulo; hS.TextColor3 = T.TxD; hS.TextSize = 10; hS.Font = Enum.Font.Gotham; hS.TextXAlignment = Enum.TextXAlignment.Left; hS.Parent = iH
+        
+        local sc = Instance.new("ScrollingFrame"); sc.Size = UDim2.new(1,-20,1,-75); sc.Position = UDim2.new(0,10,0,65); sc.BackgroundTransparency = 1; sc.BorderSizePixel = 0; sc.ScrollBarThickness = 3; sc.ScrollBarImageColor3 = T.Gd; sc.CanvasSize = UDim2.new(0,0,0,0); sc.Parent = f
+        local g = Instance.new("UIGridLayout"); g.CellSize = UDim2.new(0,300,0,105); g.CellPadding = UDim2.new(0,8,0,8); g.SortOrder = Enum.SortOrder.LayoutOrder; g.Parent = sc
+        g:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() sc.CanvasSize = UDim2.new(0,0,0,g.AbsoluteContentSize.Y+10) end)
+        return sc
+    end
+    
+    local scScripts = criarConteudo("scripts","SCRIPT LIST","Selecione um script")
+    local scUtils = criarConteudo("utils","UTILIDADES","Ferramentas úteis")
+    local scCombat = criarConteudo("combat","COMBATE","Funções de combate")
+    local scInfo = criarConteudo("info","INFORMAÇÕES","Sobre o hub")
+    
+    local function criarCard(parent,nome,sub,icone,corIcone,acao,ordem)
+        local Cd = Instance.new("Frame"); Cd.Size = UDim2.new(1,0,0,105); Cd.BackgroundColor3 = T.Cd; Cd.BorderSizePixel = 0; Cd.LayoutOrder = ordem; Cd.Parent = parent
+        cor(Cd,10); grd(Cd,T.Cd,T.Cd2,90); local cs = str(Cd,T.Cd,1.5,0.4)
+        
+        local iC = Instance.new("Frame"); iC.Size = UDim2.new(0,40,0,40); iC.Position = UDim2.new(0,12,0,12); iC.BackgroundColor3 = corIcone; iC.BackgroundTransparency = 0.75; iC.BorderSizePixel = 0; iC.Parent = Cd
+        cor(iC,20); str(iC,corIcone,1.5,0.3)
+        local iL = Instance.new("TextLabel"); iL.Size = UDim2.new(1,0,1,0); iL.BackgroundTransparency = 1; iL.Text = icone; iL.TextSize = 20; iL.Font = Enum.Font.GothamBold; iL.TextColor3 = corIcone; iL.Parent = iC
+        
+        local nL = Instance.new("TextLabel"); nL.Size = UDim2.new(1,-70,0,20); nL.Position = UDim2.new(0,60,0,12); nL.BackgroundTransparency = 1; nL.Text = nome; nL.TextColor3 = T.Tx; nL.TextSize = 12; nL.Font = Enum.Font.GothamBlack; nL.TextXAlignment = Enum.TextXAlignment.Left; nL.Parent = Cd
+        local sL = Instance.new("TextLabel"); sL.Size = UDim2.new(1,-70,0,14); sL.Position = UDim2.new(0,60,0,34); sL.BackgroundTransparency = 1; sL.Text = sub; sL.TextColor3 = T.TxD; sL.TextSize = 9; sL.Font = Enum.Font.Gotham; sL.TextXAlignment = Enum.TextXAlignment.Left; sL.Parent = Cd
+        
+        local aB = Instance.new("TextButton"); aB.Size = UDim2.new(1,-24,0,30); aB.Position = UDim2.new(0,12,1,-42); aB.BackgroundColor3 = T.Sb; aB.Text = "EXECUTE"; aB.TextColor3 = T.TxS; aB.TextSize = 11; aB.Font = Enum.Font.GothamBold; aB.BorderSizePixel = 0; aB.AutoButtonColor = false; aB.Parent = Cd
+        cor(aB,6); str(aB,T.Cd,1,0.3)
+        
+        aB.MouseEnter:Connect(function() sHover(); TweenSvc:Create(aB,TweenInfo.new(0.15),{BackgroundColor3=T.CdH}):Play(); TweenSvc:Create(cs,TweenInfo.new(0.15),{Color=corIcone,Transparency=0.1}):Play() end)
+        aB.MouseLeave:Connect(function() TweenSvc:Create(aB,TweenInfo.new(0.15),{BackgroundColor3=T.Sb}):Play(); TweenSvc:Create(cs,TweenInfo.new(0.15),{Color=T.Cd,Transparency=0.4}):Play() end)
+        aB.MouseButton1Click:Connect(function()
+            sClick()
+            if acao then local ok = pcall(acao); if not ok then sErr() else sSuc() end end
+            TweenSvc:Create(aB,TweenInfo.new(0.1),{BackgroundColor3=corIcone}):Play()
+            task.wait(0.2)
+            TweenSvc:Create(aB,TweenInfo.new(0.2),{BackgroundColor3=T.Sb}):Play()
+        end)
+    end
+    
+    criarCard(scScripts,"CHILLI AURA","Aura visual","◉",Color3.fromRGB(240,60,90),funcoes.chilli,1)
+    criarCard(scScripts,"MIRANDA AFK","Farm AFK","◉",Color3.fromRGB(70,170,240),funcoes.miranda_afk,2)
+    criarCard(scScripts,"MIRANDA STEAL","Auto steal","◈",Color3.fromRGB(90,180,255),funcoes.miranda_steal,3)
+    criarCard(scScripts,"LENNON FARM","Farm principal","◉",Color3.fromRGB(180,80,250),funcoes.lennon_farm,4)
+    criarCard(scScripts,"LENNON STEAL","Farm melhorado","◈",Color3.fromRGB(200,100,255),funcoes.lennon_steal,5)
+    
+    criarCard(scUtils,"REJOIN","Reconectar","↻",T.Ac,funcoes.rejoin,1)
+    criarCard(scUtils,"SERVER HOP","Trocar server","⇄",T.Ac,funcoes.hop,2)
+    criarCard(scUtils,"FULLBRIGHT","Iluminar","☀",T.Wr,funcoes.fullbright,3)
+    criarCard(scUtils,"RESET","Resetar","↺",T.Er,funcoes.reset,4)
+    criarCard(scUtils,"SPEED LEVE","45-55","»",T.Sc,funcoes.speed,5)
+    criarCard(scUtils,"NOCLIP","Atravessa","◌",T.Wr,funcoes.noclip,6)
+    criarCard(scUtils,"FLY 5s","Voar","✈",T.Ac,funcoes.fly,7)
+    criarCard(scUtils,"HIDE PLAYERS","Esconde","◐",T.Ac,funcoes.hide,8)
+    criarCard(scUtils,"ANTI-AFK","Evita kick","☾",T.Er,funcoes.antiafk,9)
+    criarCard(scUtils,"FPS BOOST","Performance","⚡",T.Wr,funcoes.fpsboost,10)
+    criarCard(scUtils,"USER ID","Copiar ID","🆔",T.Ac,funcoes.userid,11)
+    criarCard(scUtils,"VER PING","Latência","📡",T.Sc,funcoes.ping,12)
+    criarCard(scUtils,"FECHAR TUDO","Limpar","✕",T.Er,funcoes.fechartudo,13)
+    
+    criarCard(scCombat,"ANTI-VOID","Salva do mapa","🛡",T.Sc,funcoes.antivoid,1)
+    criarCard(scCombat,"ADD ALL FRIENDS","Segue todos","👥",T.Ac,funcoes.social,2)
+    
+    local inf = Instance.new("Frame"); inf.Size = UDim2.new(1,0,0,200); inf.BackgroundColor3 = T.Cd; inf.BorderSizePixel = 0; inf.Parent = scInfo; cor(inf,10); str(inf,T.Gd,1,0.4)
+    local infL = Instance.new("TextLabel"); infL.Size = UDim2.new(1,-20,1,-20); infL.Position = UDim2.new(0,10,0,10); infL.BackgroundTransparency = 1; infL.Text = "PBL HUB "..CONFIG.Versao.."\n\nDesenvolvido com ❤\n\nUsuário: "..CONFIG.Nome.."\nData: "..os.date("%d/%m/%Y"); infL.TextColor3 = T.TxS; infL.TextSize = 12; infL.Font = Enum.Font.Gotham; infL.TextXAlignment = Enum.TextXAlignment.Left; infL.TextYAlignment = Enum.TextYAlignment.Top; infL.Parent = inf
+end
+
+-- VERIFICAÇÃO
+local verif = false
+local function verificar()
+    if verif then return end
+    verif = true
+    if kIn.Text == CONFIG.Key then
+        sSuc()
+        kBtn.Text = "✓ CORRETA"
+        task.wait(0.5)
+        pcall(function() keyGui:Destroy() end)
+        task.wait(0.2)
+        local ok = pcall(criarPainel)
+        if ok then notificar("Bem-vindo ao PBL HUB!",T.Sc) else notificar("Erro ao criar painel",T.Er) end
+        verif = false
+    else
+        sErr()
+        kBtn.Text = "✕ INVÁLIDA"
+        kIn.Text = ""
+        task.wait(1.2)
+        kBtn.Text = "ACESSAR"
+        verif = false
+    end
+end
+
+kBtn.MouseButton1Click:Connect(verificar)
+kIn.FocusLost:Connect(function(e) if e then verificar() end end)
+
+print("[PBL HUB] Aguardando key...")
