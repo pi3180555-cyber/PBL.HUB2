@@ -1,0 +1,2720 @@
+-- PBL HUB v15.1 - Key: PBL2026
+local CoreGui  = game:GetService("CoreGui")
+local TweenSvc = game:GetService("TweenService")
+local SoundSvc = game:GetService("SoundService")
+local Players  = game:GetService("Players")
+local RunSvc   = game:GetService("RunService")
+local Teleport = game:GetService("TeleportService")
+local HttpSvc  = game:GetService("HttpService")
+local UIS      = game:GetService("UserInputService")
+local Stats    = game:GetService("Stats")
+local Lighting = game:GetService("Lighting")
+local VUser    = game:GetService("VirtualUser")
+local LP = Players.LocalPlayer
+
+local CONFIG = {
+    Key = "PBL2026",
+    Nome = LP.Name,
+    Versao = "v15.1",
+    MusicaID = "rbxassetid://1837879082",
+    DiscordLink = "https://discord.gg/SEU_CONVITE",
+    TeclaEsconder = Enum.KeyCode.RightShift,
+    StreamerMode = true,
+    AutoExecutar = false,
+    MusicaAtual = 1,
+    SalaVIP = false
+}
+
+local Temas = {
+    Roxo = {a1 = Color3.fromRGB(155, 89, 255), a2 = Color3.fromRGB(255, 60, 172)},
+    Azul = {a1 = Color3.fromRGB(60, 150, 255), a2 = Color3.fromRGB(60, 220, 255)},
+    Verde = {a1 = Color3.fromRGB(46, 230, 140), a2 = Color3.fromRGB(150, 255, 100)},
+    Vermelho = {a1 = Color3.fromRGB(255, 80, 100), a2 = Color3.fromRGB(255, 150, 50)},
+    Rosa = {a1 = Color3.fromRGB(255, 60, 172), a2 = Color3.fromRGB(255, 150, 220)},
+    Laranja = {a1 = Color3.fromRGB(255, 140, 50), a2 = Color3.fromRGB(255, 200, 80)},
+    Ciano = {a1 = Color3.fromRGB(0, 220, 220), a2 = Color3.fromRGB(100, 255, 255)}
+}
+
+local Musicas = {
+    {nome = "Eletronica", id = "rbxassetid://1837879082"},
+    {nome = "Lofi Chill", id = "rbxassetid://9046841576"},
+    {nome = "Hype Trap", id = "rbxassetid://1836780060"},
+    {nome = "Synthwave", id = "rbxassetid://1835945202"},
+    {nome = "Phonk", id = "rbxassetid://1838495471"},
+    {nome = "Epica", id = "rbxassetid://1836780247"},
+    {nome = "Relaxante", id = "rbxassetid://1837874494"},
+    {nome = "Rap Beat", id = "rbxassetid://1841647094"}
+}
+
+local Theme = {
+    Bg = Color3.fromRGB(11, 11, 16),
+    BgSoft = Color3.fromRGB(18, 18, 25),
+    Card = Color3.fromRGB(24, 24, 34),
+    CardHover = Color3.fromRGB(34, 34, 48),
+    Text = Color3.fromRGB(245, 245, 250),
+    TextDim = Color3.fromRGB(130, 130, 150),
+    TextSoft = Color3.fromRGB(180, 180, 195),
+    Accent1 = Temas.Roxo.a1,
+    Accent2 = Temas.Roxo.a2,
+    Accent3 = Color3.fromRGB(80, 200, 255),
+    Success = Color3.fromRGB(46, 230, 140),
+    Error = Color3.fromRGB(255, 80, 100),
+    Warning = Color3.fromRGB(255, 190, 60),
+    Discord = Color3.fromRGB(88, 101, 242),
+    Gold = Color3.fromRGB(255, 215, 0),
+    Pink = Color3.fromRGB(255, 100, 150),
+    Chilli = Color3.fromRGB(240, 60, 90),
+    Miranda = Color3.fromRGB(70, 170, 240),
+    Lennon = Color3.fromRGB(180, 80, 250)
+}
+
+local temaAtual = "Roxo"
+local musica = nil
+local musicaPausada = false
+local contadorScripts = 0
+local painelVisivel = true
+local favoritos = {}
+local historico = {}
+local painelGui
+local XP = 0
+local Nivel = 1
+local XPNecessario = 100
+local hotkeys = {
+    ["Chilli Aura"] = "1",
+    ["Miranda AFK"] = "2",
+    ["Lennon Farm"] = "3"
+}
+local antiVoidAtivo = false
+
+for _, n in ipairs({"PBL_Key","PBL_WelcomeCute","PBL_Panel","PBL_Notif","PBL_Obrigado","PBL_BemVindo","PBL_Confirm","PBL_VIP","PBL_Pesquisa","PBL_EscolherMusica","PBL_Historico","PBL_Teleportes","PBL_MiniGame","PBL_Conquistas","PBL_PlayerList","PBL_Hotkeys","PBL_Perfil"}) do
+    local o = CoreGui:FindFirstChild(n)
+    if o then o:Destroy() end
+end
+
+local function corner(p, r)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, r or 10)
+    c.Parent = p
+    return c
+end
+
+local function stroke(p, cor, t, tr)
+    local s = Instance.new("UIStroke")
+    s.Color = cor
+    s.Thickness = t or 1
+    s.Transparency = tr or 0
+    s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    s.Parent = p
+    return s
+end
+
+local function grad(p, c1, c2, r)
+    local g = Instance.new("UIGradient")
+    g.Color = ColorSequence.new(c1, c2)
+    g.Rotation = r or 90
+    g.Parent = p
+    return g
+end
+
+local function aplicarTema(nome)
+    local t = Temas[nome]
+    if not t then return end
+    Theme.Accent1 = t.a1
+    Theme.Accent2 = t.a2
+    temaAtual = nome
+end
+
+local function som(id, vol, pitch)
+    pcall(function()
+        local s = Instance.new("Sound")
+        s.SoundId = id
+        s.Volume = vol or 0.4
+        s.PlaybackSpeed = pitch or 1
+        s.Parent = SoundSvc
+        s:Play()
+        game:GetService("Debris"):AddItem(s, 3)
+    end)
+end
+
+local function sHover() som("rbxassetid://5810725781", 0.28, 1.15) end
+local function sClick() som("rbxassetid://6895094670", 0.35, 1.1) end
+local function sSucesso() som("rbxassetid://9125402735", 0.45, 1) end
+local function sErro() som("rbxassetid://9114419659", 0.5, 0.85) end
+local function sOpen() som("rbxassetid://6042053626", 0.5, 1) end
+local function sBoom() som("rbxassetid://1837879082", 0.6, 1) end
+local function sLevelUp() som("rbxassetid://6042053626", 0.7, 1.3) end
+
+local function tocarMusicaIndice(idx)
+    pcall(function()
+        if musica then musica:Destroy() end
+        local m = Musicas[idx]
+        if not m then return end
+        local s = Instance.new("Sound")
+        s.SoundId = m.id
+        s.Volume = 0.35
+        s.Looped = true
+        s.Parent = SoundSvc
+        s:Play()
+        musica = s
+        musicaPausada = false
+        CONFIG.MusicaAtual = idx
+        CONFIG.MusicaID = m.id
+    end)
+end
+
+local function pararMusica()
+    pcall(function()
+        if musica then
+            musica:Stop()
+            musica:Destroy()
+            musica = nil
+        end
+    end)
+end
+
+local function toggleMusica()
+    if not musica then tocarMusicaIndice(CONFIG.MusicaAtual) return true end
+    if musicaPausada then
+        musica:Resume()
+        musicaPausada = false
+        return true
+    else
+        musica:Pause()
+        musicaPausada = true
+        return false
+    end
+end
+
+local function notificar(msg, cor)
+    pcall(function()
+        local old = CoreGui:FindFirstChild("PBL_Notif")
+        if old then old:Destroy() end
+        local g = Instance.new("ScreenGui")
+        g.Name = "PBL_Notif"
+        g.Parent = CoreGui
+        g.IgnoreGuiInset = true
+        g.DisplayOrder = 9999
+        local f = Instance.new("Frame")
+        f.Size = UDim2.new(0, 320, 0, 52)
+        f.Position = UDim2.new(0.5, -160, 0, 25)
+        f.BackgroundColor3 = Theme.Card
+        f.BorderSizePixel = 0
+        f.Parent = g
+        corner(f, 10)
+        stroke(f, cor, 1.5, 0.3)
+        local b = Instance.new("Frame")
+        b.Size = UDim2.new(0, 3, 1, 0)
+        b.BackgroundColor3 = cor
+        b.BorderSizePixel = 0
+        b.Parent = f
+        corner(b, 10)
+        local l = Instance.new("TextLabel")
+        l.Size = UDim2.new(1, -25, 1, 0)
+        l.Position = UDim2.new(0, 18, 0, 0)
+        l.BackgroundTransparency = 1
+        l.Text = msg
+        l.TextColor3 = Theme.Text
+        l.TextSize = 13
+        l.Font = Enum.Font.GothamMedium
+        l.TextXAlignment = Enum.TextXAlignment.Left
+        l.TextWrapped = true
+        l.Parent = f
+        task.delay(3, function() if g then g:Destroy() end end)
+    end)
+end
+
+local function shakeTela(forca, dur)
+    local cam = workspace.CurrentCamera
+    if not cam then return end
+    local orig = cam.CFrame
+    for i = 1, 20 do
+        local f = forca * (1 - i/20)
+        cam.CFrame = orig * CFrame.new(math.random(-f, f)/100, math.random(-f, f)/100, math.random(-f, f)/100)
+        task.wait(dur/20)
+    end
+    cam.CFrame = orig
+end
+
+local function criarBonequinho(parentGui, cor)
+    local b = Instance.new("Frame")
+    b.Size = UDim2.new(0, 20, 0, 30)
+    b.BackgroundTransparency = 1
+    b.BorderSizePixel = 0
+    b.ZIndex = 3
+    b.Parent = parentGui
+    local cabeca = Instance.new("Frame")
+    cabeca.Size = UDim2.new(0, 12, 0, 12)
+    cabeca.Position = UDim2.new(0.5, -6, 0, 0)
+    cabeca.BackgroundColor3 = cor
+    cabeca.BorderSizePixel = 0
+    cabeca.Parent = b
+    corner(cabeca, 6)
+    local corpo = Instance.new("Frame")
+    corpo.Size = UDim2.new(0, 8, 0, 12)
+    corpo.Position = UDim2.new(0.5, -4, 0, 13)
+    corpo.BackgroundColor3 = cor
+    corpo.BorderSizePixel = 0
+    corpo.Parent = b
+    corner(corpo, 3)
+    local pe = Instance.new("Frame")
+    pe.Size = UDim2.new(0, 3, 0, 6)
+    pe.Position = UDim2.new(0.5, -4, 1, -6)
+    pe.BackgroundColor3 = cor
+    pe.BorderSizePixel = 0
+    pe.Parent = b
+    corner(pe, 2)
+    local pd = Instance.new("Frame")
+    pd.Size = UDim2.new(0, 3, 0, 6)
+    pd.Position = UDim2.new(0.5, 1, 1, -6)
+    pd.BackgroundColor3 = cor
+    pd.BorderSizePixel = 0
+    pd.Parent = b
+    corner(pd, 2)
+    local be = Instance.new("Frame")
+    be.Size = UDim2.new(0, 3, 0, 8)
+    be.Position = UDim2.new(0, -2, 0, 15)
+    be.BackgroundColor3 = cor
+    be.BorderSizePixel = 0
+    be.Parent = b
+    corner(be, 2)
+    local bd = Instance.new("Frame")
+    bd.Size = UDim2.new(0, 3, 0, 8)
+    bd.Position = UDim2.new(1, -1, 0, 15)
+    bd.BackgroundColor3 = cor
+    bd.BorderSizePixel = 0
+    bd.Parent = b
+    corner(bd, 2)
+    task.spawn(function()
+        local alt = false
+        while b.Parent do
+            alt = not alt
+            if alt then
+                TweenSvc:Create(pe, TweenInfo.new(0.2), {Rotation = 15}):Play()
+                TweenSvc:Create(pd, TweenInfo.new(0.2), {Rotation = -15}):Play()
+                TweenSvc:Create(be, TweenInfo.new(0.2), {Rotation = -20}):Play()
+                TweenSvc:Create(bd, TweenInfo.new(0.2), {Rotation = 20}):Play()
+            else
+                TweenSvc:Create(pe, TweenInfo.new(0.2), {Rotation = -15}):Play()
+                TweenSvc:Create(pd, TweenInfo.new(0.2), {Rotation = 15}):Play()
+                TweenSvc:Create(be, TweenInfo.new(0.2), {Rotation = 20}):Play()
+                TweenSvc:Create(bd, TweenInfo.new(0.2), {Rotation = -20}):Play()
+            end
+            task.wait(0.2)
+        end
+    end)
+    return b
+end
+
+local coresBonequinho = {
+    Color3.fromRGB(255, 100, 150), Color3.fromRGB(155, 89, 255),
+    Color3.fromRGB(80, 200, 255), Color3.fromRGB(46, 230, 140),
+    Color3.fromRGB(255, 190, 60), Color3.fromRGB(255, 60, 172)
+}
+
+local function animarBonequinhos(g)
+    task.spawn(function()
+        for i = 1, 6 do
+            local b = criarBonequinho(g, coresBonequinho[i])
+            local lado = (i - 1) % 4
+            local posIni, posFim
+            if lado == 0 then
+                posIni = UDim2.new(-0.1, 0, 0, 10)
+                posFim = UDim2.new(1.1, 0, 0, 10)
+            elseif lado == 1 then
+                b.Rotation = -90
+                posIni = UDim2.new(1, -35, -0.1, 0)
+                posFim = UDim2.new(1, -35, 1.1, 0)
+            elseif lado == 2 then
+                posIni = UDim2.new(1.1, 0, 1, -45)
+                posFim = UDim2.new(-0.1, 0, 1, -45)
+            else
+                b.Rotation = 90
+                posIni = UDim2.new(0, 15, 1.1, 0)
+                posFim = UDim2.new(0, 15, -0.1, 0)
+            end
+            b.Position = posIni
+            TweenSvc:Create(b, TweenInfo.new(4.5, Enum.EasingStyle.Linear), {Position = posFim}):Play()
+            task.wait(0.3)
+        end
+    end)
+end
+
+local function animarCoracao(g)
+    local coracao = Instance.new("TextLabel")
+    coracao.Size = UDim2.new(0, 60, 0, 60)
+    coracao.Position = UDim2.new(1, -90, 0, 25)
+    coracao.BackgroundTransparency = 1
+    coracao.Text = "♥"
+    coracao.TextColor3 = Theme.Pink
+    coracao.TextSize = 42
+    coracao.Font = Enum.Font.GothamBold
+    coracao.ZIndex = 4
+    coracao.Parent = g
+    task.spawn(function()
+        while coracao.Parent do
+            TweenSvc:Create(coracao, TweenInfo.new(0.35), {TextSize = 52}):Play()
+            task.wait(0.35)
+            if not coracao.Parent then break end
+            TweenSvc:Create(coracao, TweenInfo.new(0.35), {TextSize = 42}):Play()
+            task.wait(0.35)
+        end
+    end)
+    return coracao
+end
+
+local function animarConfetes(g)
+    local coresConfete = {
+        Color3.fromRGB(255, 100, 150), Color3.fromRGB(155, 89, 255),
+        Color3.fromRGB(80, 200, 255), Color3.fromRGB(46, 230, 140),
+        Color3.fromRGB(255, 190, 60), Color3.fromRGB(255, 60, 172)
+    }
+    task.spawn(function()
+        for _ = 1, 50 do
+            local conf = Instance.new("Frame")
+            local tam = math.random(4, 8)
+            conf.Size = UDim2.new(0, tam, 0, tam)
+            conf.Position = UDim2.new(math.random(), 0, -0.05, 0)
+            conf.BackgroundColor3 = coresConfete[math.random(#coresConfete)]
+            conf.BorderSizePixel = 0
+            conf.ZIndex = 2
+            conf.Parent = g
+            corner(conf, tam)
+            TweenSvc:Create(conf, TweenInfo.new(2.5 + math.random()*2, Enum.EasingStyle.Linear), {
+                Position = UDim2.new(math.random(), 0, 1.05, 0)
+            }):Play()
+            task.delay(5, function() if conf then conf:Destroy() end end)
+            task.wait(0.05)
+        end
+    end)
+    task.spawn(function()
+        for _ = 1, 15 do
+            local cor = Instance.new("TextLabel")
+            cor.Size = UDim2.new(0, 20, 0, 20)
+            cor.Position = UDim2.new(math.random(), 0, -0.05, 0)
+            cor.BackgroundTransparency = 1
+            cor.Text = "♥"
+            cor.TextColor3 = Theme.Pink
+            cor.TextSize = math.random(14, 24)
+            cor.Font = Enum.Font.GothamBold
+            cor.ZIndex = 2
+            cor.Parent = g
+            TweenSvc:Create(cor, TweenInfo.new(3 + math.random()*2, Enum.EasingStyle.Linear), {
+                Position = UDim2.new(math.random(), 0, 1.05, 0)
+            }):Play()
+            task.delay(5, function() if cor then cor:Destroy() end end)
+            task.wait(0.3)
+        end
+    end)
+end
+
+local function ganharXP(qtd)
+    XP = XP + qtd
+    if XP >= XPNecessario then
+        XP = XP - XPNecessario
+        Nivel = Nivel + 1
+        XPNecessario = math.floor(XPNecessario * 1.5)
+        sLevelUp()
+        shakeTela(8, 0.3)
+        notificar("NIVEL " .. Nivel .. "!", Theme.Gold)
+    end
+end-- ═══════════════════════════════════════════════════════════
+-- TELA DE KEY
+-- ═══════════════════════════════════════════════════════════
+local keyGui = Instance.new("ScreenGui")
+keyGui.Name = "PBL_Key"
+keyGui.Parent = CoreGui
+keyGui.IgnoreGuiInset = true
+keyGui.DisplayOrder = 100
+
+local overlay = Instance.new("Frame")
+overlay.Size = UDim2.new(1, 0, 1, 0)
+overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+overlay.BackgroundTransparency = 0.5
+overlay.BorderSizePixel = 0
+overlay.Parent = keyGui
+
+local kFrame = Instance.new("Frame")
+kFrame.Size = UDim2.new(0, 420, 0, 240)
+kFrame.Position = UDim2.new(0.5, -210, 0.5, -120)
+kFrame.BackgroundColor3 = Theme.Bg
+kFrame.BorderSizePixel = 0
+kFrame.Parent = keyGui
+corner(kFrame, 16)
+grad(kFrame, Theme.Bg, Theme.BgSoft, 45)
+stroke(kFrame, Theme.Accent1, 1.5, 0.3)
+
+sOpen()
+task.delay(0.5, function() tocarMusicaIndice(1) end)
+
+local kAvatar = Instance.new("ImageLabel")
+kAvatar.Size = UDim2.new(0, 60, 0, 60)
+kAvatar.Position = UDim2.new(0, 25, 0, 30)
+kAvatar.BackgroundColor3 = Theme.BgSoft
+kAvatar.BorderSizePixel = 0
+kAvatar.Image = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. LP.UserId .. "&width=150&height=150&format=png"
+kAvatar.Parent = kFrame
+corner(kAvatar, 30)
+stroke(kAvatar, Theme.Accent1, 2, 0.1)
+
+local kTitle = Instance.new("TextLabel")
+kTitle.Size = UDim2.new(1, -110, 0, 26)
+kTitle.Position = UDim2.new(0, 100, 0, 35)
+kTitle.BackgroundTransparency = 1
+kTitle.Text = "PBL HUB"
+kTitle.TextColor3 = Theme.Text
+kTitle.TextSize = 22
+kTitle.Font = Enum.Font.GothamBlack
+kTitle.TextXAlignment = Enum.TextXAlignment.Left
+kTitle.Parent = kFrame
+
+local kSub = Instance.new("TextLabel")
+kSub.Size = UDim2.new(1, -110, 0, 18)
+kSub.Position = UDim2.new(0, 100, 0, 62)
+kSub.BackgroundTransparency = 1
+kSub.Text = "Digite a key para continuar"
+kSub.TextColor3 = Theme.TextDim
+kSub.TextSize = 11
+kSub.Font = Enum.Font.Gotham
+kSub.TextXAlignment = Enum.TextXAlignment.Left
+kSub.Parent = kFrame
+
+local divisor = Instance.new("Frame")
+divisor.Size = UDim2.new(1, -50, 0, 1)
+divisor.Position = UDim2.new(0, 25, 0, 105)
+divisor.BackgroundColor3 = Theme.CardHover
+divisor.BorderSizePixel = 0
+divisor.Parent = kFrame
+
+local kInputBg = Instance.new("Frame")
+kInputBg.Size = UDim2.new(1, -50, 0, 42)
+kInputBg.Position = UDim2.new(0, 25, 0, 122)
+kInputBg.BackgroundColor3 = Theme.BgSoft
+kInputBg.BorderSizePixel = 0
+kInputBg.Parent = kFrame
+corner(kInputBg, 8)
+stroke(kInputBg, Theme.Accent1, 1, 0.5)
+
+local kInput = Instance.new("TextBox")
+kInput.Size = UDim2.new(1, -20, 1, 0)
+kInput.Position = UDim2.new(0, 10, 0, 0)
+kInput.BackgroundTransparency = 1
+kInput.Text = ""
+kInput.PlaceholderText = "KEY AQUI"
+kInput.PlaceholderColor3 = Theme.TextDim
+kInput.TextColor3 = Theme.Text
+kInput.TextSize = 13
+kInput.Font = Enum.Font.GothamMedium
+kInput.ClearTextOnFocus = false
+kInput.Parent = kInputBg
+
+local kBtn = Instance.new("TextButton")
+kBtn.Size = UDim2.new(1, -50, 0, 42)
+kBtn.Position = UDim2.new(0, 25, 0, 175)
+kBtn.BackgroundColor3 = Theme.Accent1
+kBtn.Text = "VERIFICAR"
+kBtn.TextColor3 = Theme.Text
+kBtn.Font = Enum.Font.GothamBold
+kBtn.TextSize = 13
+kBtn.BorderSizePixel = 0
+kBtn.AutoButtonColor = false
+kBtn.Parent = kFrame
+corner(kBtn, 8)
+grad(kBtn, Theme.Accent1, Theme.Accent2, 0)
+
+kBtn.MouseEnter:Connect(function() sHover() end)
+
+-- ═══════════════════════════════════════════════════════════
+-- TELA OBRIGADO
+-- ═══════════════════════════════════════════════════════════
+local function telaObrigado(callback)
+    local g = Instance.new("ScreenGui")
+    g.Name = "PBL_Obrigado"
+    g.Parent = CoreGui
+    g.IgnoreGuiInset = true
+    g.DisplayOrder = 550
+    local ov = Instance.new("Frame")
+    ov.Size = UDim2.new(1, 0, 1, 0)
+    ov.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ov.BackgroundTransparency = 0.35
+    ov.BorderSizePixel = 0
+    ov.Parent = g
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(0, 0, 0, 0)
+    f.Position = UDim2.new(0.5, 0, 0.5, 0)
+    f.BackgroundColor3 = Theme.Bg
+    f.BorderSizePixel = 0
+    f.Parent = g
+    corner(f, 16)
+    grad(f, Theme.Bg, Theme.Card, 45)
+    stroke(f, Theme.Success, 2, 0.2)
+    TweenSvc:Create(f, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 440, 0, 220), Position = UDim2.new(0.5, -220, 0.5, -110)
+    }):Play()
+    task.wait(0.4)
+    local checkBox = Instance.new("Frame")
+    checkBox.Size = UDim2.new(0, 56, 0, 56)
+    checkBox.Position = UDim2.new(0.5, -28, 0, 25)
+    checkBox.BackgroundColor3 = Theme.Success
+    checkBox.BackgroundTransparency = 0.85
+    checkBox.BorderSizePixel = 0
+    checkBox.Parent = f
+    corner(checkBox, 28)
+    local check = Instance.new("TextLabel")
+    check.Size = UDim2.new(1, 0, 1, 0)
+    check.BackgroundTransparency = 1
+    check.Text = "OK"
+    check.TextColor3 = Theme.Success
+    check.TextSize = 22
+    check.Font = Enum.Font.GothamBold
+    check.Parent = checkBox
+    local t1 = Instance.new("TextLabel")
+    t1.Size = UDim2.new(1, -20, 0, 32)
+    t1.Position = UDim2.new(0, 10, 0, 92)
+    t1.BackgroundTransparency = 1
+    t1.Text = "OBRIGADO PELA COMPRA"
+    t1.TextColor3 = Theme.Text
+    t1.TextSize = 20
+    t1.Font = Enum.Font.GothamBlack
+    t1.Parent = f
+    local t2 = Instance.new("TextLabel")
+    t2.Size = UDim2.new(1, -20, 0, 18)
+    t2.Position = UDim2.new(0, 10, 0, 125)
+    t2.BackgroundTransparency = 1
+    t2.Text = "Aproveite o " .. CONFIG.Versao
+    t2.TextColor3 = Theme.TextDim
+    t2.TextSize = 12
+    t2.Font = Enum.Font.Gotham
+    t2.Parent = f
+    local t3 = Instance.new("TextLabel")
+    t3.Size = UDim2.new(1, -20, 0, 15)
+    t3.Position = UDim2.new(0, 10, 0, 150)
+    t3.BackgroundTransparency = 1
+    t3.Text = "Suporte: " .. CONFIG.DiscordLink
+    t3.TextColor3 = Theme.Accent3
+    t3.TextSize = 10
+    t3.Font = Enum.Font.Gotham
+    t3.Parent = f
+    sSucesso()
+    shakeTela(12, 0.5)
+    task.wait(3)
+    TweenSvc:Create(f, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+    TweenSvc:Create(ov, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+    for _, c in ipairs(f:GetDescendants()) do
+        if c:IsA("TextLabel") then TweenSvc:Create(c, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+        elseif c:IsA("Frame") then TweenSvc:Create(c, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play() end
+    end
+    task.wait(0.5)
+    g:Destroy()
+    if callback then callback() end
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- BOAS-VINDAS
+-- ═══════════════════════════════════════════════════════════
+local function boasVindasEpica(callback)
+    local g = Instance.new("ScreenGui")
+    g.Name = "PBL_WelcomeCute"
+    g.Parent = CoreGui
+    g.IgnoreGuiInset = true
+    g.DisplayOrder = 560
+    local ov = Instance.new("Frame")
+    ov.Size = UDim2.new(1, 0, 1, 0)
+    ov.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ov.BackgroundTransparency = 1
+    ov.BorderSizePixel = 0
+    ov.Parent = g
+    TweenSvc:Create(ov, TweenInfo.new(0.4), {BackgroundTransparency = 0.45}):Play()
+    animarBonequinhos(g)
+    local coracao = animarCoracao(g)
+    animarConfetes(g)
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(0, 0, 0, 0)
+    f.Position = UDim2.new(0.5, 0, 0.5, 0)
+    f.BackgroundColor3 = Theme.Bg
+    f.BorderSizePixel = 0
+    f.ZIndex = 5
+    f.Parent = g
+    corner(f, 20)
+    grad(f, Theme.Bg, Theme.Card, 45)
+    stroke(f, Theme.Accent1, 2, 0.15)
+    TweenSvc:Create(f, TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 460, 0, 260), Position = UDim2.new(0.5, -230, 0.5, -130)
+    }):Play()
+    task.wait(0.5)
+    local avatar = Instance.new("ImageLabel")
+    avatar.Size = UDim2.new(0, 66, 0, 66)
+    avatar.Position = UDim2.new(0.5, -33, 0, 22)
+    avatar.BackgroundColor3 = Theme.BgSoft
+    avatar.BorderSizePixel = 0
+    avatar.Image = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. LP.UserId .. "&width=150&height=150&format=png"
+    avatar.ZIndex = 6
+    avatar.Parent = f
+    corner(avatar, 33)
+    stroke(avatar, Theme.Accent1, 2, 0.1)
+    local oiTxt = Instance.new("TextLabel")
+    oiTxt.Size = UDim2.new(1, -20, 0, 22)
+    oiTxt.Position = UDim2.new(0, 10, 0, 98)
+    oiTxt.BackgroundTransparency = 1
+    oiTxt.Text = "OI, " .. string.upper(CONFIG.Nome) .. "!"
+    oiTxt.TextColor3 = Theme.Accent1
+    oiTxt.TextSize = 15
+    oiTxt.Font = Enum.Font.GothamBlack
+    oiTxt.ZIndex = 6
+    oiTxt.Parent = f
+    local titulo = Instance.new("TextLabel")
+    titulo.Size = UDim2.new(1, -20, 0, 32)
+    titulo.Position = UDim2.new(0, 10, 0, 122)
+    titulo.BackgroundTransparency = 1
+    titulo.Text = "BEM VINDO AO PBL HUB"
+    titulo.TextColor3 = Theme.Text
+    titulo.TextSize = 21
+    titulo.Font = Enum.Font.GothamBlack
+    titulo.ZIndex = 6
+    titulo.Parent = f
+    local tg = Instance.new("UIGradient")
+    tg.Color = ColorSequence.new(Theme.Accent1, Theme.Accent2)
+    tg.Parent = titulo
+    local sub1 = Instance.new("TextLabel")
+    sub1.Size = UDim2.new(1, -20, 0, 18)
+    sub1.Position = UDim2.new(0, 10, 0, 158)
+    sub1.BackgroundTransparency = 1
+    sub1.Text = "E uma honra ter voce aqui"
+    sub1.TextColor3 = Theme.Pink
+    sub1.TextSize = 12
+    sub1.Font = Enum.Font.GothamSemibold
+    sub1.ZIndex = 6
+    sub1.Parent = f
+    local barBg = Instance.new("Frame")
+    barBg.Size = UDim2.new(0, 380, 0, 5)
+    barBg.Position = UDim2.new(0.5, -190, 1, -28)
+    barBg.BackgroundColor3 = Theme.BgSoft
+    barBg.BorderSizePixel = 0
+    barBg.ZIndex = 6
+    barBg.Parent = f
+    corner(barBg, 3)
+    local barFill = Instance.new("Frame")
+    barFill.Size = UDim2.new(0, 0, 1, 0)
+    barFill.BackgroundColor3 = Theme.Accent1
+    barFill.BorderSizePixel = 0
+    barFill.ZIndex = 7
+    barFill.Parent = barBg
+    corner(barFill, 3)
+    grad(barFill, Theme.Accent1, Theme.Accent2, 0)
+    sSucesso()
+    shakeTela(8, 0.4)
+    TweenSvc:Create(barFill, TweenInfo.new(2.5, Enum.EasingStyle.Quad), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+    task.wait(3)
+    TweenSvc:Create(f, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+    TweenSvc:Create(ov, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+    TweenSvc:Create(coracao, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+    for _, c in ipairs(f:GetDescendants()) do
+        if c:IsA("TextLabel") then TweenSvc:Create(c, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+        elseif c:IsA("ImageLabel") then TweenSvc:Create(c, TweenInfo.new(0.3), {ImageTransparency = 1}):Play()
+        elseif c:IsA("Frame") then TweenSvc:Create(c, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play() end
+    end
+    task.wait(0.6)
+    g:Destroy()
+    if callback then callback() end
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- BEM VINDO AO PBL HUB
+-- ═══════════════════════════════════════════════════════════
+local function bemVindoPBL(nomeScript, callback)
+    local g = Instance.new("ScreenGui")
+    g.Name = "PBL_BemVindo"
+    g.Parent = CoreGui
+    g.IgnoreGuiInset = true
+    g.DisplayOrder = 700
+    local ov = Instance.new("Frame")
+    ov.Size = UDim2.new(1, 0, 1, 0)
+    ov.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ov.BackgroundTransparency = 1
+    ov.BorderSizePixel = 0
+    ov.ZIndex = 1
+    ov.Parent = g
+    TweenSvc:Create(ov, TweenInfo.new(0.4), {BackgroundTransparency = 0.45}):Play()
+    animarBonequinhos(g)
+    local coracao = animarCoracao(g)
+    animarConfetes(g)
+    local bigText = Instance.new("TextLabel")
+    bigText.Size = UDim2.new(1, 0, 0, 50)
+    bigText.Position = UDim2.new(0, 0, 0.5, -200)
+    bigText.BackgroundTransparency = 1
+    bigText.Text = "BEM VINDO AO"
+    bigText.TextColor3 = Theme.TextDim
+    bigText.TextSize = 36
+    bigText.Font = Enum.Font.GothamBlack
+    bigText.TextTransparency = 1
+    bigText.ZIndex = 5
+    bigText.Parent = g
+    local bigTitle = Instance.new("TextLabel")
+    bigTitle.Size = UDim2.new(1, 0, 0, 180)
+    bigTitle.Position = UDim2.new(0, 0, 0.5, -140)
+    bigTitle.BackgroundTransparency = 1
+    bigTitle.Text = "PBL HUB"
+    bigTitle.TextColor3 = Theme.Text
+    bigTitle.TextSize = 140
+    bigTitle.Font = Enum.Font.GothamBlack
+    bigTitle.TextTransparency = 1
+    bigTitle.ZIndex = 5
+    bigTitle.Parent = g
+    local tGrad = Instance.new("UIGradient")
+    tGrad.Color = ColorSequence.new(Theme.Accent1, Theme.Accent2)
+    tGrad.Parent = bigTitle
+    local subTxt = Instance.new("TextLabel")
+    subTxt.Size = UDim2.new(1, 0, 0, 26)
+    subTxt.Position = UDim2.new(0, 0, 0.5, 55)
+    subTxt.BackgroundTransparency = 1
+    subTxt.Text = "Carregando " .. nomeScript
+    subTxt.TextColor3 = Theme.Success
+    subTxt.TextSize = 16
+    subTxt.Font = Enum.Font.GothamSemibold
+    subTxt.TextTransparency = 1
+    subTxt.ZIndex = 5
+    subTxt.Parent = g
+    local barBg = Instance.new("Frame")
+    barBg.Size = UDim2.new(0, 460, 0, 5)
+    barBg.Position = UDim2.new(0.5, -230, 0.5, 110)
+    barBg.BackgroundColor3 = Theme.BgSoft
+    barBg.BackgroundTransparency = 1
+    barBg.BorderSizePixel = 0
+    barBg.ZIndex = 5
+    barBg.Parent = g
+    corner(barBg, 3)
+    local barFill = Instance.new("Frame")
+    barFill.Size = UDim2.new(0, 0, 1, 0)
+    barFill.BackgroundColor3 = Theme.Accent1
+    barFill.BackgroundTransparency = 1
+    barFill.BorderSizePixel = 0
+    barFill.ZIndex = 6
+    barFill.Parent = barBg
+    corner(barFill, 3)
+    grad(barFill, Theme.Accent1, Theme.Accent2, 0)
+    task.spawn(function()
+        sBoom()
+        shakeTela(20, 0.7)
+        task.wait(0.4)
+        TweenSvc:Create(bigText, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+        task.wait(0.3)
+        bigTitle.TextSize = 20
+        bigTitle.TextTransparency = 0
+        TweenSvc:Create(bigTitle, TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextSize = 140}):Play()
+        sSucesso()
+        task.wait(0.4)
+        TweenSvc:Create(subTxt, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+        TweenSvc:Create(barBg, TweenInfo.new(0.2), {BackgroundTransparency = 0.3}):Play()
+        TweenSvc:Create(barFill, TweenInfo.new(1.5, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 0
+        }):Play()
+        task.wait(2.5)
+        TweenSvc:Create(bigText, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+        TweenSvc:Create(bigTitle, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+        TweenSvc:Create(subTxt, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+        TweenSvc:Create(barBg, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+        TweenSvc:Create(barFill, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+        TweenSvc:Create(ov, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+        TweenSvc:Create(coracao, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+        task.wait(0.6)
+        g:Destroy()
+        if callback then callback() end
+    end)
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- LISTA DE JOGADORES
+-- ═══════════════════════════════════════════════════════════
+local function abrirListaJogadores()
+    local lGui = Instance.new("ScreenGui")
+    lGui.Name = "PBL_PlayerList"
+    lGui.Parent = CoreGui
+    lGui.IgnoreGuiInset = true
+    lGui.DisplayOrder = 880
+    local ov = Instance.new("Frame")
+    ov.Size = UDim2.new(1, 0, 1, 0)
+    ov.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ov.BackgroundTransparency = 0.55
+    ov.BorderSizePixel = 0
+    ov.Parent = lGui
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(0, 480, 0, 440)
+    f.Position = UDim2.new(0.5, -240, 0.5, -220)
+    f.BackgroundColor3 = Theme.Bg
+    f.BorderSizePixel = 0
+    f.Parent = lGui
+    corner(f, 16)
+    grad(f, Theme.Bg, Theme.Card, 45)
+    stroke(f, Theme.Accent1, 1.5, 0.2)
+    local t = Instance.new("TextLabel")
+    t.Size = UDim2.new(1, -20, 0, 28)
+    t.Position = UDim2.new(0, 10, 0, 15)
+    t.BackgroundTransparency = 1
+    t.Text = "JOGADORES NA SALA (" .. #Players:GetPlayers() .. ")"
+    t.TextColor3 = Theme.Text
+    t.TextSize = 14
+    t.Font = Enum.Font.GothamBlack
+    t.Parent = f
+    local cont = Instance.new("ScrollingFrame")
+    cont.Size = UDim2.new(1, -30, 1, -80)
+    cont.Position = UDim2.new(0, 15, 0, 55)
+    cont.BackgroundTransparency = 1
+    cont.BorderSizePixel = 0
+    cont.ScrollBarThickness = 3
+    cont.ScrollBarImageColor3 = Theme.Accent1
+    cont.CanvasSize = UDim2.new(0, 0, 0, 0)
+    cont.Parent = f
+    local l = Instance.new("UIListLayout")
+    l.Padding = UDim.new(0, 5)
+    l.Parent = cont
+    l:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        cont.CanvasSize = UDim2.new(0, 0, 0, l.AbsoluteContentSize.Y + 10)
+    end)
+    for _, plr in ipairs(Players:GetPlayers()) do
+        local isMe = plr == LP
+        local item = Instance.new("TextButton")
+        item.Size = UDim2.new(1, 0, 0, 50)
+        item.BackgroundColor3 = isMe and Color3.fromRGB(35, 25, 50) or Theme.Card
+        item.Text = ""
+        item.BorderSizePixel = 0
+        item.AutoButtonColor = false
+        item.Parent = cont
+        corner(item, 8)
+        stroke(item, isMe and Theme.Accent1 or Theme.TextDim, 1, 0.5)
+        local av = Instance.new("ImageLabel")
+        av.Size = UDim2.new(0, 36, 0, 36)
+        av.Position = UDim2.new(0, 10, 0.5, -18)
+        av.BackgroundColor3 = Theme.BgSoft
+        av.BorderSizePixel = 0
+        av.Image = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. plr.UserId .. "&width=150&height=150&format=png"
+        av.Parent = item
+        corner(av, 18)
+        local nomeLbl = Instance.new("TextLabel")
+        nomeLbl.Size = UDim2.new(1, -120, 0, 18)
+        nomeLbl.Position = UDim2.new(0, 55, 0, 8)
+        nomeLbl.BackgroundTransparency = 1
+        nomeLbl.Text = plr.DisplayName .. (isMe and " (voce)" or "")
+        nomeLbl.TextColor3 = Theme.Text
+        nomeLbl.TextSize = 12
+        nomeLbl.Font = Enum.Font.GothamBold
+        nomeLbl.TextXAlignment = Enum.TextXAlignment.Left
+        nomeLbl.Parent = item
+        local subLbl = Instance.new("TextLabel")
+        subLbl.Size = UDim2.new(1, -120, 0, 14)
+        subLbl.Position = UDim2.new(0, 55, 0, 26)
+        subLbl.BackgroundTransparency = 1
+        subLbl.Text = "@" .. plr.Name
+        subLbl.TextColor3 = Theme.TextDim
+        subLbl.TextSize = 10
+        subLbl.Font = Enum.Font.Gotham
+        subLbl.TextXAlignment = Enum.TextXAlignment.Left
+        subLbl.Parent = item
+        if not isMe then
+            item.MouseEnter:Connect(function() sHover() end)
+            item.MouseButton1Click:Connect(function()
+                sClick()
+                pcall(function()
+                    local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                    local alvoHRP = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                    if hrp and alvoHRP then
+                        hrp.CFrame = alvoHRP.CFrame + Vector3.new(0, 3, 3)
+                        notificar("Teleportado para " .. plr.DisplayName, Theme.Success)
+                    end
+                end)
+            end)
+        end
+    end
+    local fechar = Instance.new("TextButton")
+    fechar.Size = UDim2.new(1, -30, 0, 34)
+    fechar.Position = UDim2.new(0, 15, 1, -45)
+    fechar.BackgroundColor3 = Theme.Error
+    fechar.Text = "FECHAR"
+    fechar.TextColor3 = Theme.Text
+    fechar.TextSize = 11
+    fechar.Font = Enum.Font.GothamBold
+    fechar.BorderSizePixel = 0
+    fechar.AutoButtonColor = false
+    fechar.Parent = f
+    corner(fechar, 8)
+    fechar.MouseEnter:Connect(function() sHover() end)
+    fechar.MouseButton1Click:Connect(function() sClick() lGui:Destroy() end)
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- ANTI-VOID
+-- ═══════════════════════════════════════════════════════════
+local function toggleAntiVoid()
+    antiVoidAtivo = not antiVoidAtivo
+    if antiVoidAtivo then
+        notificar("Anti-Void ATIVADO", Theme.Success)
+        task.spawn(function()
+            while antiVoidAtivo do
+                pcall(function()
+                    local char = LP.Character
+                    if not char then return end
+                    local hrp = char:FindFirstChild("HumanoidRootPart")
+                    if hrp and hrp.Position.Y < -50 then
+                        hrp.CFrame = CFrame.new(0, 50, 0)
+                        notificar("Anti-Void salvou voce!", Theme.Warning)
+                    end
+                end)
+                task.wait(math.random(2, 5))
+            end
+        end)
+    else
+        notificar("Anti-Void DESATIVADO", Theme.Warning)
+    end
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- HOTKEYS
+-- ═══════════════════════════════════════════════════════════
+local function abrirHotkeys()
+    local hGui = Instance.new("ScreenGui")
+    hGui.Name = "PBL_Hotkeys"
+    hGui.Parent = CoreGui
+    hGui.IgnoreGuiInset = true
+    hGui.DisplayOrder = 890
+    local ov = Instance.new("Frame")
+    ov.Size = UDim2.new(1, 0, 1, 0)
+    ov.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ov.BackgroundTransparency = 0.55
+    ov.BorderSizePixel = 0
+    ov.Parent = hGui
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(0, 500, 0, 400)
+    f.Position = UDim2.new(0.5, -250, 0.5, -200)
+    f.BackgroundColor3 = Theme.Bg
+    f.BorderSizePixel = 0
+    f.Parent = hGui
+    corner(f, 16)
+    grad(f, Theme.Bg, Theme.Card, 45)
+    stroke(f, Theme.Accent1, 1.5, 0.2)
+    local t = Instance.new("TextLabel")
+    t.Size = UDim2.new(1, -20, 0, 28)
+    t.Position = UDim2.new(0, 10, 0, 15)
+    t.BackgroundTransparency = 1
+    t.Text = "SISTEMA DE HOTKEYS"
+    t.TextColor3 = Theme.Text
+    t.TextSize = 14
+    t.Font = Enum.Font.GothamBlack
+    t.Parent = f
+    local sub = Instance.new("TextLabel")
+    sub.Size = UDim2.new(1, -20, 0, 14)
+    sub.Position = UDim2.new(0, 10, 0, 42)
+    sub.BackgroundTransparency = 1
+    sub.Text = "Digite a tecla para cada script"
+    sub.TextColor3 = Theme.TextDim
+    sub.TextSize = 10
+    sub.Font = Enum.Font.Gotham
+    sub.Parent = f
+    local scriptsHotkey = {"Chilli Aura", "Miranda AFK", "Lennon Farm"}
+    local y = 75
+    for _, nomeScript in ipairs(scriptsHotkey) do
+        local item = Instance.new("Frame")
+        item.Size = UDim2.new(1, -30, 0, 45)
+        item.Position = UDim2.new(0, 15, 0, y)
+        item.BackgroundColor3 = Theme.Card
+        item.BorderSizePixel = 0
+        item.Parent = f
+        corner(item, 8)
+        stroke(item, Theme.Accent1, 1, 0.5)
+        local nomeLbl = Instance.new("TextLabel")
+        nomeLbl.Size = UDim2.new(0.5, 0, 1, 0)
+        nomeLbl.Position = UDim2.new(0, 10, 0, 0)
+        nomeLbl.BackgroundTransparency = 1
+        nomeLbl.Text = nomeScript
+        nomeLbl.TextColor3 = Theme.Text
+        nomeLbl.TextSize = 12
+        nomeLbl.Font = Enum.Font.GothamBold
+        nomeLbl.TextXAlignment = Enum.TextXAlignment.Left
+        nomeLbl.Parent = item
+        local keyBox = Instance.new("TextBox")
+        keyBox.Size = UDim2.new(0, 70, 0, 30)
+        keyBox.Position = UDim2.new(1, -85, 0.5, -15)
+        keyBox.BackgroundColor3 = Theme.BgSoft
+        keyBox.Text = hotkeys[nomeScript] or ""
+        keyBox.TextColor3 = Theme.Accent1
+        keyBox.TextSize = 14
+        keyBox.Font = Enum.Font.GothamBold
+        keyBox.BorderSizePixel = 0
+        keyBox.ClearTextOnFocus = false
+        keyBox.Parent = item
+        corner(keyBox, 6)
+        stroke(keyBox, Theme.Accent1, 1, 0.5)
+        keyBox.FocusLost:Connect(function()
+            local nova = string.upper(keyBox.Text):sub(1, 1)
+            if #nova > 0 then
+                hotkeys[nomeScript] = nova
+                keyBox.Text = nova
+                notificar(nomeScript .. " agora e tecla " .. nova, Theme.Success)
+                sSucesso()
+            end
+        end)
+        y = y + 55
+    end
+    local fechar = Instance.new("TextButton")
+    fechar.Size = UDim2.new(1, -30, 0, 34)
+    fechar.Position = UDim2.new(0, 15, 1, -45)
+    fechar.BackgroundColor3 = Theme.Error
+    fechar.Text = "FECHAR"
+    fechar.TextColor3 = Theme.Text
+    fechar.TextSize = 11
+    fechar.Font = Enum.Font.GothamBold
+    fechar.BorderSizePixel = 0
+    fechar.AutoButtonColor = false
+    fechar.Parent = f
+    corner(fechar, 8)
+    fechar.MouseEnter:Connect(function() sHover() end)
+    fechar.MouseButton1Click:Connect(function() sClick() hGui:Destroy() end)
+end
+
+UIS.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    local tecla = input.KeyCode.Name
+    for nomeScript, teclaBind in pairs(hotkeys) do
+        if tecla == teclaBind then
+            sClick()
+            notificar("Hotkey: " .. nomeScript, Theme.Accent1)
+        end
+    end
+    if input.KeyCode == CONFIG.TeclaEsconder then
+        painelVisivel = not painelVisivel
+        if painelGui then
+            painelGui.Enabled = painelVisivel
+            notificar(painelVisivel and "Painel visivel" or "Painel escondido", Theme.Accent3)
+        end
+    end
+end)
+
+-- ═══════════════════════════════════════════════════════════
+-- PERFIL
+-- ═══════════════════════════════════════════════════════════
+local function abrirPerfil()
+    local pGui = Instance.new("ScreenGui")
+    pGui.Name = "PBL_Perfil"
+    pGui.Parent = CoreGui
+    pGui.IgnoreGuiInset = true
+    pGui.DisplayOrder = 905
+    local ov = Instance.new("Frame")
+    ov.Size = UDim2.new(1, 0, 1, 0)
+    ov.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ov.BackgroundTransparency = 0.55
+    ov.BorderSizePixel = 0
+    ov.Parent = pGui
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(0, 440, 0, 380)
+    f.Position = UDim2.new(0.5, -220, 0.5, -190)
+    f.BackgroundColor3 = Theme.Bg
+    f.BorderSizePixel = 0
+    f.Parent = pGui
+    corner(f, 16)
+    grad(f, Theme.Bg, Theme.Card, 45)
+    stroke(f, Theme.Accent1, 1.5, 0.2)
+    local av = Instance.new("ImageLabel")
+    av.Size = UDim2.new(0, 80, 0, 80)
+    av.Position = UDim2.new(0.5, -40, 0, 25)
+    av.BackgroundColor3 = Theme.BgSoft
+    av.BorderSizePixel = 0
+    av.Image = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. LP.UserId .. "&width=150&height=150&format=png"
+    av.Parent = f
+    corner(av, 40)
+    stroke(av, Theme.Accent1, 2, 0.1)
+    local nome = Instance.new("TextLabel")
+    nome.Size = UDim2.new(1, -20, 0, 24)
+    nome.Position = UDim2.new(0, 10, 0, 115)
+    nome.BackgroundTransparency = 1
+    nome.Text = LP.DisplayName
+    nome.TextColor3 = Theme.Text
+    nome.TextSize = 16
+    nome.Font = Enum.Font.GothamBlack
+    nome.Parent = f
+    local nivelLbl = Instance.new("TextLabel")
+    nivelLbl.Size = UDim2.new(1, -20, 0, 24)
+    nivelLbl.Position = UDim2.new(0, 10, 0, 145)
+    nivelLbl.BackgroundTransparency = 1
+    nivelLbl.Text = "NIVEL " .. Nivel
+    nivelLbl.TextColor3 = Theme.Gold
+    nivelLbl.TextSize = 18
+    nivelLbl.Font = Enum.Font.GothamBlack
+    nivelLbl.Parent = f
+    local barraBg = Instance.new("Frame")
+    barraBg.Size = UDim2.new(1, -60, 0, 12)
+    barraBg.Position = UDim2.new(0.5, -200, 0, 180)
+    barraBg.BackgroundColor3 = Theme.BgSoft
+    barraBg.BorderSizePixel = 0
+    barraBg.Parent = f
+    corner(barraBg, 6)
+    local progresso = math.min(XP / XPNecessario, 1)
+    local barraFill = Instance.new("Frame")
+    barraFill.Size = UDim2.new(progresso, 0, 1, 0)
+    barraFill.BackgroundColor3 = Theme.Accent1
+    barraFill.BorderSizePixel = 0
+    barraFill.Parent = barraBg
+    corner(barraFill, 6)
+    grad(barraFill, Theme.Accent1, Theme.Accent2, 0)
+    local xpLbl = Instance.new("TextLabel")
+    xpLbl.Size = UDim2.new(1, -20, 0, 18)
+    xpLbl.Position = UDim2.new(0, 10, 0, 200)
+    xpLbl.BackgroundTransparency = 1
+    xpLbl.Text = XP .. " / " .. XPNecessario .. " XP"
+    xpLbl.TextColor3 = Theme.TextDim
+    xpLbl.TextSize = 11
+    xpLbl.Font = Enum.Font.Gotham
+    xpLbl.Parent = f
+    local function contaFav()
+        local c = 0
+        for _ in pairs(favoritos) do c = c + 1 end
+        return c
+    end
+    local stats = Instance.new("TextLabel")
+    stats.Size = UDim2.new(1, -30, 1, -270)
+    stats.Position = UDim2.new(0, 15, 0, 230)
+    stats.BackgroundTransparency = 1
+    stats.Text = "Scripts executados: " .. contadorScripts .. "\n" ..
+        "Favoritos salvos: " .. contaFav() .. "\n" ..
+        "Historico: " .. #historico .. " entradas\n" ..
+        "Versao: " .. CONFIG.Versao
+    stats.TextColor3 = Theme.TextSoft
+    stats.TextSize = 11
+    stats.Font = Enum.Font.Gotham
+    stats.TextXAlignment = Enum.TextXAlignment.Left
+    stats.TextYAlignment = Enum.TextYAlignment.Top
+    stats.Parent = f
+    local fechar = Instance.new("TextButton")
+    fechar.Size = UDim2.new(1, -30, 0, 34)
+    fechar.Position = UDim2.new(0, 15, 1, -45)
+    fechar.BackgroundColor3 = Theme.Error
+    fechar.Text = "FECHAR"
+    fechar.TextColor3 = Theme.Text
+    fechar.TextSize = 11
+    fechar.Font = Enum.Font.GothamBold
+    fechar.BorderSizePixel = 0
+    fechar.AutoButtonColor = false
+    fechar.Parent = f
+    corner(fechar, 8)
+    fechar.MouseEnter:Connect(function() sHover() end)
+    fechar.MouseButton1Click:Connect(function() sClick() pGui:Destroy() end)
+end-- ═══════════════════════════════════════════════════════════
+-- HISTORICO
+-- ═══════════════════════════════════════════════════════════
+local function abrirHistorico()
+    local hGui = Instance.new("ScreenGui")
+    hGui.Name = "PBL_Historico"
+    hGui.Parent = CoreGui
+    hGui.IgnoreGuiInset = true
+    hGui.DisplayOrder = 830
+    local ov = Instance.new("Frame")
+    ov.Size = UDim2.new(1, 0, 1, 0)
+    ov.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ov.BackgroundTransparency = 0.55
+    ov.BorderSizePixel = 0
+    ov.Parent = hGui
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(0, 500, 0, 320)
+    f.Position = UDim2.new(0.5, -250, 0.5, -160)
+    f.BackgroundColor3 = Theme.Bg
+    f.BorderSizePixel = 0
+    f.Parent = hGui
+    corner(f, 16)
+    grad(f, Theme.Bg, Theme.Card, 45)
+    stroke(f, Theme.Accent1, 1.5, 0.2)
+    local t = Instance.new("TextLabel")
+    t.Size = UDim2.new(1, -20, 0, 28)
+    t.Position = UDim2.new(0, 10, 0, 15)
+    t.BackgroundTransparency = 1
+    t.Text = "HISTORICO"
+    t.TextColor3 = Theme.Text
+    t.TextSize = 15
+    t.Font = Enum.Font.GothamBlack
+    t.Parent = f
+    local cont = Instance.new("ScrollingFrame")
+    cont.Size = UDim2.new(1, -30, 1, -80)
+    cont.Position = UDim2.new(0, 15, 0, 55)
+    cont.BackgroundTransparency = 1
+    cont.BorderSizePixel = 0
+    cont.ScrollBarThickness = 3
+    cont.ScrollBarImageColor3 = Theme.Accent1
+    cont.CanvasSize = UDim2.new(0, 0, 0, 0)
+    cont.Parent = f
+    local l = Instance.new("UIListLayout")
+    l.Padding = UDim.new(0, 5)
+    l.Parent = cont
+    l:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        cont.CanvasSize = UDim2.new(0, 0, 0, l.AbsoluteContentSize.Y + 10)
+    end)
+    if #historico == 0 then
+        local nada = Instance.new("TextLabel")
+        nada.Size = UDim2.new(1, 0, 0, 40)
+        nada.BackgroundTransparency = 1
+        nada.Text = "Nenhum script executado"
+        nada.TextColor3 = Theme.TextDim
+        nada.TextSize = 11
+        nada.Font = Enum.Font.Gotham
+        nada.Parent = cont
+    else
+        for _, h in ipairs(historico) do
+            local item = Instance.new("Frame")
+            item.Size = UDim2.new(1, 0, 0, 34)
+            item.BackgroundColor3 = Theme.Card
+            item.BorderSizePixel = 0
+            item.Parent = cont
+            corner(item, 8)
+            stroke(item, Theme.Accent1, 1, 0.6)
+            local barra = Instance.new("Frame")
+            barra.Size = UDim2.new(0, 3, 1, 0)
+            barra.BackgroundColor3 = Theme.Accent1
+            barra.BorderSizePixel = 0
+            barra.Parent = item
+            corner(barra, 8)
+            local txt = Instance.new("TextLabel")
+            txt.Size = UDim2.new(1, -20, 1, 0)
+            txt.Position = UDim2.new(0, 15, 0, 0)
+            txt.BackgroundTransparency = 1
+            txt.Text = h
+            txt.TextColor3 = Theme.Text
+            txt.TextSize = 11
+            txt.Font = Enum.Font.Gotham
+            txt.TextXAlignment = Enum.TextXAlignment.Left
+            txt.Parent = item
+        end
+    end
+    local fechar = Instance.new("TextButton")
+    fechar.Size = UDim2.new(1, -30, 0, 34)
+    fechar.Position = UDim2.new(0, 15, 1, -45)
+    fechar.BackgroundColor3 = Theme.Error
+    fechar.Text = "FECHAR"
+    fechar.TextColor3 = Theme.Text
+    fechar.TextSize = 11
+    fechar.Font = Enum.Font.GothamBold
+    fechar.BorderSizePixel = 0
+    fechar.AutoButtonColor = false
+    fechar.Parent = f
+    corner(fechar, 8)
+    fechar.MouseEnter:Connect(function() sHover() end)
+    fechar.MouseButton1Click:Connect(function() sClick() hGui:Destroy() end)
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- TELEPORTES
+-- ═══════════════════════════════════════════════════════════
+local function abrirTeleportes()
+    local tGui = Instance.new("ScreenGui")
+    tGui.Name = "PBL_Teleportes"
+    tGui.Parent = CoreGui
+    tGui.IgnoreGuiInset = true
+    tGui.DisplayOrder = 840
+    local ov = Instance.new("Frame")
+    ov.Size = UDim2.new(1, 0, 1, 0)
+    ov.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ov.BackgroundTransparency = 0.55
+    ov.BorderSizePixel = 0
+    ov.Parent = tGui
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(0, 480, 0, 260)
+    f.Position = UDim2.new(0.5, -240, 0.5, -130)
+    f.BackgroundColor3 = Theme.Bg
+    f.BorderSizePixel = 0
+    f.Parent = tGui
+    corner(f, 16)
+    grad(f, Theme.Bg, Theme.Card, 45)
+    stroke(f, Theme.Accent1, 1.5, 0.2)
+    local t = Instance.new("TextLabel")
+    t.Size = UDim2.new(1, -20, 0, 28)
+    t.Position = UDim2.new(0, 10, 0, 15)
+    t.BackgroundTransparency = 1
+    t.Text = "TELEPORTES"
+    t.TextColor3 = Theme.Text
+    t.TextSize = 15
+    t.Font = Enum.Font.GothamBlack
+    t.Parent = f
+    local grid = Instance.new("Frame")
+    grid.Size = UDim2.new(1, -30, 1, -100)
+    grid.Position = UDim2.new(0, 15, 0, 55)
+    grid.BackgroundTransparency = 1
+    grid.Parent = f
+    local gridLayout = Instance.new("UIGridLayout")
+    gridLayout.CellSize = UDim2.new(0, 215, 0, 50)
+    gridLayout.CellPadding = UDim2.new(0, 6, 0, 6)
+    gridLayout.Parent = grid
+    local destinos = {
+        {nome = "Ceu (Sky)", pos = Vector3.new(0, 500, 0)},
+        {nome = "Subterraneo", pos = Vector3.new(0, -100, 0)},
+        {nome = "Aleatorio", pos = nil},
+        {nome = "Spawn", pos = "spawn"}
+    }
+    for _, d in ipairs(destinos) do
+        local btn = Instance.new("TextButton")
+        btn.BackgroundColor3 = Theme.Card
+        btn.Text = ""
+        btn.BorderSizePixel = 0
+        btn.AutoButtonColor = false
+        btn.Parent = grid
+        corner(btn, 8)
+        stroke(btn, Theme.Accent1, 1, 0.6)
+        local barra = Instance.new("Frame")
+        barra.Size = UDim2.new(0, 3, 1, 0)
+        barra.BackgroundColor3 = Theme.Accent1
+        barra.BorderSizePixel = 0
+        barra.Parent = btn
+        corner(barra, 8)
+        local nl = Instance.new("TextLabel")
+        nl.Size = UDim2.new(1, -20, 1, 0)
+        nl.Position = UDim2.new(0, 15, 0, 0)
+        nl.BackgroundTransparency = 1
+        nl.Text = d.nome
+        nl.TextColor3 = Theme.Text
+        nl.TextSize = 11
+        nl.Font = Enum.Font.GothamSemibold
+        nl.TextXAlignment = Enum.TextXAlignment.Left
+        nl.Parent = btn
+        btn.MouseEnter:Connect(function() sHover() end)
+        btn.MouseButton1Click:Connect(function()
+            sClick()
+            pcall(function()
+                local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                if not hrp then return end
+                if d.pos == "spawn" then
+                    hrp.CFrame = CFrame.new(0, 50, 0)
+                elseif d.pos == nil then
+                    hrp.CFrame = CFrame.new(math.random(-500,500), 100, math.random(-500,500))
+                else
+                    hrp.CFrame = CFrame.new(d.pos)
+                end
+                notificar("Teleportado: " .. d.nome, Theme.Accent1)
+                ganharXP(10)
+            end)
+        end)
+    end
+    local fechar = Instance.new("TextButton")
+    fechar.Size = UDim2.new(1, -30, 0, 34)
+    fechar.Position = UDim2.new(0, 15, 1, -45)
+    fechar.BackgroundColor3 = Theme.Error
+    fechar.Text = "FECHAR"
+    fechar.TextColor3 = Theme.Text
+    fechar.TextSize = 11
+    fechar.Font = Enum.Font.GothamBold
+    fechar.BorderSizePixel = 0
+    fechar.AutoButtonColor = false
+    fechar.Parent = f
+    corner(fechar, 8)
+    fechar.MouseEnter:Connect(function() sHover() end)
+    fechar.MouseButton1Click:Connect(function() sClick() tGui:Destroy() end)
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- MINI-GAME
+-- ═══════════════════════════════════════════════════════════
+local function abrirMiniGame()
+    local mg = Instance.new("ScreenGui")
+    mg.Name = "PBL_MiniGame"
+    mg.Parent = CoreGui
+    mg.IgnoreGuiInset = true
+    mg.DisplayOrder = 860
+    local ov = Instance.new("Frame")
+    ov.Size = UDim2.new(1, 0, 1, 0)
+    ov.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ov.BackgroundTransparency = 0.55
+    ov.BorderSizePixel = 0
+    ov.Parent = mg
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(0, 600, 0, 360)
+    f.Position = UDim2.new(0.5, -300, 0.5, -180)
+    f.BackgroundColor3 = Theme.Bg
+    f.BorderSizePixel = 0
+    f.Parent = mg
+    corner(f, 16)
+    grad(f, Theme.Bg, Theme.Card, 45)
+    stroke(f, Theme.Accent1, 1.5, 0.2)
+    local t = Instance.new("TextLabel")
+    t.Size = UDim2.new(1, -20, 0, 28)
+    t.Position = UDim2.new(0, 10, 0, 15)
+    t.BackgroundTransparency = 1
+    t.Text = "MINI-GAME: CLIQUE RAPIDO"
+    t.TextColor3 = Theme.Text
+    t.TextSize = 15
+    t.Font = Enum.Font.GothamBlack
+    t.Parent = f
+    local sub = Instance.new("TextLabel")
+    sub.Size = UDim2.new(1, -20, 0, 14)
+    sub.Position = UDim2.new(0, 10, 0, 42)
+    sub.BackgroundTransparency = 1
+    sub.Text = "Tempo: 15s"
+    sub.TextColor3 = Theme.TextDim
+    sub.TextSize = 10
+    sub.Font = Enum.Font.Gotham
+    sub.Parent = f
+    local pts = Instance.new("TextLabel")
+    pts.Size = UDim2.new(1, -20, 0, 22)
+    pts.Position = UDim2.new(0, 10, 0, 62)
+    pts.BackgroundTransparency = 1
+    pts.Text = "Pontos: 0"
+    pts.TextColor3 = Theme.Success
+    pts.TextSize = 15
+    pts.Font = Enum.Font.GothamBlack
+    pts.Parent = f
+    local area = Instance.new("Frame")
+    area.Size = UDim2.new(1, -30, 1, -145)
+    area.Position = UDim2.new(0, 15, 0, 90)
+    area.BackgroundColor3 = Theme.BgSoft
+    area.BorderSizePixel = 0
+    area.Parent = f
+    corner(area, 10)
+    local alvo = Instance.new("TextButton")
+    alvo.Size = UDim2.new(0, 50, 0, 50)
+    alvo.Position = UDim2.new(0.5, -25, 0.5, -25)
+    alvo.BackgroundColor3 = Theme.Accent1
+    alvo.Text = "X"
+    alvo.TextSize = 20
+    alvo.TextColor3 = Theme.Text
+    alvo.Font = Enum.Font.GothamBlack
+    alvo.BorderSizePixel = 0
+    alvo.AutoButtonColor = false
+    alvo.Parent = area
+    corner(alvo, 25)
+    grad(alvo, Theme.Accent1, Theme.Accent2, 45)
+    local pontos = 0
+    local tempo = 15
+    local jogando = true
+    alvo.MouseButton1Click:Connect(function()
+        if not jogando then return end
+        sClick()
+        pontos = pontos + 1
+        pts.Text = "Pontos: " .. pontos
+        alvo.Position = UDim2.new(math.random(), -25, math.random(), -25)
+    end)
+    task.spawn(function()
+        while tempo > 0 and jogando do
+            task.wait(1)
+            tempo = tempo - 1
+            sub.Text = "Tempo: " .. tempo .. "s"
+        end
+        if jogando then
+            jogando = false
+            sSucesso()
+            notificar("Fim! " .. pontos .. " pontos", Theme.Success)
+            sub.Text = "FIM - Pontos: " .. pontos
+            ganharXP(pontos * 5)
+        end
+    end)
+    local fechar = Instance.new("TextButton")
+    fechar.Size = UDim2.new(1, -30, 0, 34)
+    fechar.Position = UDim2.new(0, 15, 1, -45)
+    fechar.BackgroundColor3 = Theme.Error
+    fechar.Text = "FECHAR"
+    fechar.TextColor3 = Theme.Text
+    fechar.TextSize = 11
+    fechar.Font = Enum.Font.GothamBold
+    fechar.BorderSizePixel = 0
+    fechar.AutoButtonColor = false
+    fechar.Parent = f
+    corner(fechar, 8)
+    fechar.MouseEnter:Connect(function() sHover() end)
+    fechar.MouseButton1Click:Connect(function()
+        sClick()
+        jogando = false
+        mg:Destroy()
+    end)
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- CONQUISTAS
+-- ═══════════════════════════════════════════════════════════
+local function abrirConquistas()
+    local cGui = Instance.new("ScreenGui")
+    cGui.Name = "PBL_Conquistas"
+    cGui.Parent = CoreGui
+    cGui.IgnoreGuiInset = true
+    cGui.DisplayOrder = 870
+    local ov = Instance.new("Frame")
+    ov.Size = UDim2.new(1, 0, 1, 0)
+    ov.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ov.BackgroundTransparency = 0.55
+    ov.BorderSizePixel = 0
+    ov.Parent = cGui
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(0, 560, 0, 380)
+    f.Position = UDim2.new(0.5, -280, 0.5, -190)
+    f.BackgroundColor3 = Theme.Bg
+    f.BorderSizePixel = 0
+    f.Parent = cGui
+    corner(f, 16)
+    grad(f, Theme.Bg, Theme.Card, 45)
+    stroke(f, Theme.Accent1, 1.5, 0.2)
+    local t = Instance.new("TextLabel")
+    t.Size = UDim2.new(1, -20, 0, 28)
+    t.Position = UDim2.new(0, 10, 0, 15)
+    t.BackgroundTransparency = 1
+    t.Text = "CONQUISTAS - Nivel " .. Nivel
+    t.TextColor3 = Theme.Text
+    t.TextSize = 15
+    t.Font = Enum.Font.GothamBlack
+    t.Parent = f
+    local cont = Instance.new("ScrollingFrame")
+    cont.Size = UDim2.new(1, -30, 1, -80)
+    cont.Position = UDim2.new(0, 15, 0, 55)
+    cont.BackgroundTransparency = 1
+    cont.BorderSizePixel = 0
+    cont.ScrollBarThickness = 3
+    cont.ScrollBarImageColor3 = Theme.Accent1
+    cont.CanvasSize = UDim2.new(0, 0, 0, 0)
+    cont.Parent = f
+    local l = Instance.new("UIListLayout")
+    l.Padding = UDim.new(0, 6)
+    l.Parent = cont
+    l:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        cont.CanvasSize = UDim2.new(0, 0, 0, l.AbsoluteContentSize.Y + 10)
+    end)
+    local function contaFav()
+        local c = 0
+        for _ in pairs(favoritos) do c = c + 1 end
+        return c
+    end
+    local lista = {
+        {nome = "Primeiro Script", desc = "Execute 1 script", check = contadorScripts >= 1},
+        {nome = "Viciado", desc = "Execute 10 scripts", check = contadorScripts >= 10},
+        {nome = "Mestre", desc = "Execute 50 scripts", check = contadorScripts >= 50},
+        {nome = "Colecionador", desc = "Favorite 5 scripts", check = contaFav() >= 5},
+        {nome = "VIP", desc = "Entrou na Sala VIP", check = CONFIG.SalaVIP},
+        {nome = "DJ", desc = "Trocou a musica", check = CONFIG.MusicaAtual > 1},
+        {nome = "Iniciante", desc = "Alcancou nivel 2", check = Nivel >= 2},
+        {nome = "Intermediario", desc = "Alcancou nivel 5", check = Nivel >= 5},
+        {nome = "Lendario", desc = "Alcancou nivel 10", check = Nivel >= 10}
+    }
+    for _, c in ipairs(lista) do
+        local item = Instance.new("Frame")
+        item.Size = UDim2.new(1, 0, 0, 46)
+        item.BackgroundColor3 = c.check and Color3.fromRGB(25, 45, 32) or Theme.Card
+        item.BorderSizePixel = 0
+        item.Parent = cont
+        corner(item, 8)
+        stroke(item, c.check and Theme.Success or Theme.TextDim, 1, 0.5)
+        local barra = Instance.new("Frame")
+        barra.Size = UDim2.new(0, 3, 1, 0)
+        barra.BackgroundColor3 = c.check and Theme.Success or Theme.TextDim
+        barra.BorderSizePixel = 0
+        barra.Parent = item
+        corner(barra, 8)
+        local nl = Instance.new("TextLabel")
+        nl.Size = UDim2.new(1, -80, 0, 16)
+        nl.Position = UDim2.new(0, 15, 0, 8)
+        nl.BackgroundTransparency = 1
+        nl.Text = c.nome
+        nl.TextColor3 = c.check and Theme.Success or Theme.TextSoft
+        nl.TextSize = 12
+        nl.Font = Enum.Font.GothamBold
+        nl.TextXAlignment = Enum.TextXAlignment.Left
+        nl.Parent = item
+        local dl = Instance.new("TextLabel")
+        dl.Size = UDim2.new(1, -80, 0, 13)
+        dl.Position = UDim2.new(0, 15, 0, 24)
+        dl.BackgroundTransparency = 1
+        dl.Text = c.desc
+        dl.TextColor3 = Theme.TextDim
+        dl.TextSize = 10
+        dl.Font = Enum.Font.Gotham
+        dl.TextXAlignment = Enum.TextXAlignment.Left
+        dl.Parent = item
+        local chk = Instance.new("TextLabel")
+        chk.Size = UDim2.new(0, 25, 1, 0)
+        chk.Position = UDim2.new(1, -30, 0, 0)
+        chk.BackgroundTransparency = 1
+        chk.Text = c.check and "OK" or "--"
+        chk.TextColor3 = c.check and Theme.Success or Theme.TextDim
+        chk.TextSize = 12
+        chk.Font = Enum.Font.GothamBold
+        chk.Parent = item
+    end
+    local fechar = Instance.new("TextButton")
+    fechar.Size = UDim2.new(1, -30, 0, 34)
+    fechar.Position = UDim2.new(0, 15, 1, -45)
+    fechar.BackgroundColor3 = Theme.Error
+    fechar.Text = "FECHAR"
+    fechar.TextColor3 = Theme.Text
+    fechar.TextSize = 11
+    fechar.Font = Enum.Font.GothamBold
+    fechar.BorderSizePixel = 0
+    fechar.AutoButtonColor = false
+    fechar.Parent = f
+    corner(fechar, 8)
+    fechar.MouseEnter:Connect(function() sHover() end)
+    fechar.MouseButton1Click:Connect(function() sClick() cGui:Destroy() end)
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- PESQUISA
+-- ═══════════════════════════════════════════════════════════
+local function abrirPesquisa()
+    local pGui = Instance.new("ScreenGui")
+    pGui.Name = "PBL_Pesquisa"
+    pGui.Parent = CoreGui
+    pGui.IgnoreGuiInset = true
+    pGui.DisplayOrder = 850
+    local ov = Instance.new("Frame")
+    ov.Size = UDim2.new(1, 0, 1, 0)
+    ov.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ov.BackgroundTransparency = 0.55
+    ov.BorderSizePixel = 0
+    ov.Parent = pGui
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(0, 460, 0, 280)
+    f.Position = UDim2.new(0.5, -230, 0.5, -140)
+    f.BackgroundColor3 = Theme.Bg
+    f.BorderSizePixel = 0
+    f.Parent = pGui
+    corner(f, 16)
+    grad(f, Theme.Bg, Theme.Card, 45)
+    stroke(f, Theme.Accent1, 1.5, 0.2)
+    local t1 = Instance.new("TextLabel")
+    t1.Size = UDim2.new(1, -20, 0, 28)
+    t1.Position = UDim2.new(0, 10, 0, 22)
+    t1.BackgroundTransparency = 1
+    t1.Text = "O QUE VOCE ESTA ACHANDO?"
+    t1.TextColor3 = Theme.Text
+    t1.TextSize = 15
+    t1.Font = Enum.Font.GothamBlack
+    t1.Parent = f
+    local t2 = Instance.new("TextLabel")
+    t2.Size = UDim2.new(1, -20, 0, 18)
+    t2.Position = UDim2.new(0, 10, 0, 52)
+    t2.BackgroundTransparency = 1
+    t2.Text = "Sua opiniao e importante"
+    t2.TextColor3 = Theme.TextDim
+    t2.TextSize = 10
+    t2.Font = Enum.Font.Gotham
+    t2.Parent = f
+    local estrelas = {}
+    local notaAtual = 0
+    for i = 1, 5 do
+        local est = Instance.new("TextButton")
+        est.Size = UDim2.new(0, 52, 0, 52)
+        est.Position = UDim2.new(0.5, -140 + (i-1)*56, 0, 95)
+        est.BackgroundColor3 = Theme.Card
+        est.Text = "*"
+        est.TextColor3 = Theme.TextDim
+        est.TextSize = 26
+        est.Font = Enum.Font.GothamBold
+        est.BorderSizePixel = 0
+        est.AutoButtonColor = false
+        est.Parent = f
+        corner(est, 10)
+        stroke(est, Theme.TextDim, 1, 0.6)
+        est.MouseEnter:Connect(function() sHover() end)
+        est.MouseButton1Click:Connect(function()
+            sClick()
+            notaAtual = i
+            for j, e in ipairs(estrelas) do
+                if j <= i then
+                    TweenSvc:Create(e, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Accent1, TextColor3 = Theme.Text}):Play()
+                else
+                    TweenSvc:Create(e, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Card, TextColor3 = Theme.TextDim}):Play()
+                end
+            end
+        end)
+        estrelas[i] = est
+    end
+    local enviar = Instance.new("TextButton")
+    enviar.Size = UDim2.new(0, 200, 0, 40)
+    enviar.Position = UDim2.new(0.5, -100, 1, -100)
+    enviar.BackgroundColor3 = Theme.Accent1
+    enviar.Text = "ENVIAR"
+    enviar.TextColor3 = Theme.Text
+    enviar.TextSize = 11
+    enviar.Font = Enum.Font.GothamBold
+    enviar.BorderSizePixel = 0
+    enviar.AutoButtonColor = false
+    enviar.Parent = f
+    corner(enviar, 8)
+    grad(enviar, Theme.Accent1, Theme.Accent2, 0)
+    local pular = Instance.new("TextButton")
+    pular.Size = UDim2.new(0, 200, 0, 30)
+    pular.Position = UDim2.new(0.5, -100, 1, -52)
+    pular.BackgroundColor3 = Theme.BgSoft
+    pular.Text = "Pular"
+    pular.TextColor3 = Theme.TextDim
+    pular.TextSize = 10
+    pular.Font = Enum.Font.Gotham
+    pular.BorderSizePixel = 0
+    pular.AutoButtonColor = false
+    pular.Parent = f
+    corner(pular, 8)
+    enviar.MouseEnter:Connect(function() sHover() end)
+    pular.MouseEnter:Connect(function() sHover() end)
+    enviar.MouseButton1Click:Connect(function()
+        if notaAtual == 0 then
+            sErro()
+            notificar("Escolha uma nota", Theme.Warning)
+            return
+        end
+        sSucesso()
+        notificar("Obrigado! Voce deu " .. notaAtual .. " estrelas", Theme.Success)
+        ganharXP(25)
+        pGui:Destroy()
+    end)
+    pular.MouseButton1Click:Connect(function()
+        sClick()
+        pGui:Destroy()
+    end)
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- SALA VIP
+-- ═══════════════════════════════════════════════════════════
+local function abrirSalaVIP()
+    CONFIG.SalaVIP = true
+    local vipGui = Instance.new("ScreenGui")
+    vipGui.Name = "PBL_VIP"
+    vipGui.Parent = CoreGui
+    vipGui.IgnoreGuiInset = true
+    vipGui.DisplayOrder = 800
+    local ov = Instance.new("Frame")
+    ov.Size = UDim2.new(1, 0, 1, 0)
+    ov.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ov.BackgroundTransparency = 0.55
+    ov.BorderSizePixel = 0
+    ov.Parent = vipGui
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(0, 600, 0, 340)
+    f.Position = UDim2.new(0.5, -300, 0.5, -170)
+    f.BackgroundColor3 = Theme.Bg
+    f.BorderSizePixel = 0
+    f.Parent = vipGui
+    corner(f, 18)
+    grad(f, Color3.fromRGB(35, 20, 50), Theme.Bg, 45)
+    stroke(f, Theme.Gold, 2.5, 0.1)
+    local h = Instance.new("Frame")
+    h.Size = UDim2.new(1, 0, 0, 70)
+    h.BackgroundColor3 = Color3.fromRGB(25, 18, 35)
+    h.BorderSizePixel = 0
+    h.Parent = f
+    corner(h, 18)
+    grad(h, Color3.fromRGB(70, 45, 105), Color3.fromRGB(25, 18, 35), 90)
+    local topBar = Instance.new("Frame")
+    topBar.Size = UDim2.new(1, 0, 0, 3)
+    topBar.BackgroundColor3 = Theme.Gold
+    topBar.BorderSizePixel = 0
+    topBar.Parent = h
+    corner(topBar, 3)
+    grad(topBar, Theme.Gold, Color3.fromRGB(255, 100, 200), 0)
+    local tituloVIP = Instance.new("TextLabel")
+    tituloVIP.Size = UDim2.new(1, -100, 0, 22)
+    tituloVIP.Position = UDim2.new(0, 25, 0, 15)
+    tituloVIP.BackgroundTransparency = 1
+    tituloVIP.Text = "SALA VIP"
+    tituloVIP.TextColor3 = Theme.Gold
+    tituloVIP.TextSize = 18
+    tituloVIP.Font = Enum.Font.GothamBlack
+    tituloVIP.TextXAlignment = Enum.TextXAlignment.Left
+    tituloVIP.Parent = h
+    local subtituloVIP = Instance.new("TextLabel")
+    subtituloVIP.Size = UDim2.new(1, -100, 0, 16)
+    subtituloVIP.Position = UDim2.new(0, 25, 0, 40)
+    subtituloVIP.BackgroundTransparency = 1
+    subtituloVIP.Text = "Area premium - " .. CONFIG.Nome
+    subtituloVIP.TextColor3 = Theme.TextDim
+    subtituloVIP.TextSize = 10
+    subtituloVIP.Font = Enum.Font.Gotham
+    subtituloVIP.TextXAlignment = Enum.TextXAlignment.Left
+    subtituloVIP.Parent = h
+    local closeVIP = Instance.new("TextButton")
+    closeVIP.Size = UDim2.new(0, 24, 0, 24)
+    closeVIP.Position = UDim2.new(1, -34, 0, 23)
+    closeVIP.BackgroundColor3 = Theme.Error
+    closeVIP.Text = "X"
+    closeVIP.TextColor3 = Theme.Text
+    closeVIP.TextSize = 12
+    closeVIP.Font = Enum.Font.GothamBold
+    closeVIP.BorderSizePixel = 0
+    closeVIP.AutoButtonColor = false
+    closeVIP.Parent = h
+    corner(closeVIP, 6)
+    local aviso = Instance.new("TextLabel")
+    aviso.Size = UDim2.new(1, -30, 1, -90)
+    aviso.Position = UDim2.new(0, 15, 0, 82)
+    aviso.BackgroundTransparency = 1
+    aviso.Text = "Aguardando conteudo VIP..."
+    aviso.TextColor3 = Theme.TextDim
+    aviso.TextSize = 12
+    aviso.Font = Enum.Font.Gotham
+    aviso.Parent = f
+    closeVIP.MouseEnter:Connect(function() sHover() end)
+    closeVIP.MouseButton1Click:Connect(function()
+        sClick()
+        CONFIG.SalaVIP = false
+        vipGui:Destroy()
+    end)
+    sSucesso()
+    shakeTela(12, 0.4)
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- ESCOLHER MUSICA
+-- ═══════════════════════════════════════════════════════════
+local function escolherMusica()
+    local mGui = Instance.new("ScreenGui")
+    mGui.Name = "PBL_EscolherMusica"
+    mGui.Parent = CoreGui
+    mGui.IgnoreGuiInset = true
+    mGui.DisplayOrder = 820
+    local ov = Instance.new("Frame")
+    ov.Size = UDim2.new(1, 0, 1, 0)
+    ov.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    ov.BackgroundTransparency = 0.55
+    ov.BorderSizePixel = 0
+    ov.Parent = mGui
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(0, 560, 0, 340)
+    f.Position = UDim2.new(0.5, -280, 0.5, -170)
+    f.BackgroundColor3 = Theme.Bg
+    f.BorderSizePixel = 0
+    f.Parent = mGui
+    corner(f, 16)
+    grad(f, Theme.Bg, Theme.Card, 45)
+    stroke(f, Theme.Accent1, 1.5, 0.2)
+    local t = Instance.new("TextLabel")
+    t.Size = UDim2.new(1, -20, 0, 28)
+    t.Position = UDim2.new(0, 10, 0, 15)
+    t.BackgroundTransparency = 1
+    t.Text = "ESCOLHER MUSICA"
+    t.TextColor3 = Theme.Text
+    t.TextSize = 15
+    t.Font = Enum.Font.GothamBlack
+    t.Parent = f
+    local grid = Instance.new("Frame")
+    grid.Size = UDim2.new(1, -30, 1, -110)
+    grid.Position = UDim2.new(0, 15, 0, 65)
+    grid.BackgroundTransparency = 1
+    grid.Parent = f
+    local gridLayout = Instance.new("UIGridLayout")
+    gridLayout.CellSize = UDim2.new(0, 122, 0, 55)
+    gridLayout.CellPadding = UDim2.new(0, 6, 0, 6)
+    gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    gridLayout.Parent = grid
+    for i, m in ipairs(Musicas) do
+        local btn = Instance.new("TextButton")
+        btn.BackgroundColor3 = (CONFIG.MusicaAtual == i) and Theme.Accent1 or Theme.Card
+        btn.Text = ""
+        btn.BorderSizePixel = 0
+        btn.AutoButtonColor = false
+        btn.LayoutOrder = i
+        btn.Parent = grid
+        corner(btn, 8)
+        stroke(btn, Theme.Accent1, 1, 0.6)
+        local nl = Instance.new("TextLabel")
+        nl.Size = UDim2.new(1, -10, 1, 0)
+        nl.Position = UDim2.new(0, 5, 0, 0)
+        nl.BackgroundTransparency = 1
+        nl.Text = m.nome
+        nl.TextColor3 = Theme.Text
+        nl.TextSize = 11
+        nl.Font = Enum.Font.GothamSemibold
+        nl.Parent = btn
+        btn.MouseEnter:Connect(function() sHover() end)
+        btn.MouseButton1Click:Connect(function()
+            sClick()
+            tocarMusicaIndice(i)
+            notificar(m.nome .. " tocando", Theme.Success)
+            mGui:Destroy()
+        end)
+    end
+    local fechar = Instance.new("TextButton")
+    fechar.Size = UDim2.new(1, -30, 0, 34)
+    fechar.Position = UDim2.new(0, 15, 1, -45)
+    fechar.BackgroundColor3 = Theme.Error
+    fechar.Text = "FECHAR"
+    fechar.TextColor3 = Theme.Text
+    fechar.TextSize = 11
+    fechar.Font = Enum.Font.GothamBold
+    fechar.BorderSizePixel = 0
+    fechar.AutoButtonColor = false
+    fechar.Parent = f
+    corner(fechar, 8)
+    fechar.MouseEnter:Connect(function() sHover() end)
+    fechar.MouseButton1Click:Connect(function() sClick() mGui:Destroy() end)
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- FUNCOES UTILITARIAS
+-- ═══════════════════════════════════════════════════════════
+local funcoesUtil = {
+    rejoin = function()
+        notificar("Reconectando...", Theme.Accent3)
+        task.wait(0.5)
+        Teleport:Teleport(game.PlaceId, LP)
+    end,
+    hop = function()
+        notificar("Procurando servidor...", Theme.Accent1)
+        pcall(function()
+            local servers = HttpSvc:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
+            for _, srv in ipairs(servers.data) do
+                if srv.id ~= game.JobId and srv.playing < srv.maxPlayers then
+                    Teleport:TeleportToPlaceInstance(game.PlaceId, srv.id, LP)
+                    return
+                end
+            end
+            notificar("Nenhum servidor encontrado", Theme.Error)
+        end)
+    end,
+    discord = function()
+        notificar("Abrindo Discord...", Theme.Discord)
+        pcall(function()
+            game:GetService("GuiService"):OpenBrowserWindow(CONFIG.DiscordLink)
+        end)
+    end,
+    musica = function()
+        local t = toggleMusica()
+        notificar(t and "Musica ligada" or "Musica pausada", t and Theme.Success or Theme.Warning)
+    end,
+    streamer = function()
+        CONFIG.StreamerMode = not CONFIG.StreamerMode
+        notificar(CONFIG.StreamerMode and "Streamer ON" or "Streamer OFF", Theme.Accent2)
+    end,
+    autoexec = function()
+        CONFIG.AutoExecutar = not CONFIG.AutoExecutar
+        notificar(CONFIG.AutoExecutar and "Auto-Exec ON" or "Auto-Exec OFF", CONFIG.AutoExecutar and Theme.Success or Theme.Warning)
+    end,
+    fechartudo = function()
+        for _, n in ipairs({"PBL_Confirm","PBL_Notif","PBL_BemVindo","PBL_VIP","PBL_Pesquisa","PBL_EscolherMusica","PBL_Historico","PBL_Teleportes","PBL_MiniGame","PBL_Conquistas","PBL_PlayerList","PBL_Hotkeys","PBL_Perfil"}) do
+            local o = CoreGui:FindFirstChild(n)
+            if o then o:Destroy() end
+        end
+        notificar("Tudo fechado", Theme.Error)
+    end,
+    hide = function()
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LP and plr.Character then
+                for _, p in ipairs(plr.Character:GetDescendants()) do
+                    if p:IsA("BasePart") then p.LocalTransparencyModifier = 1 end
+                end
+            end
+        end
+        notificar("Jogadores escondidos", Theme.Accent2)
+    end,
+    social = function()
+        pcall(function()
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= LP then LP:RequestFriendship(plr) end
+            end
+        end)
+        notificar("Pedidos enviados", Theme.Discord)
+    end,
+    antiafk = function()
+        pcall(function()
+            LP.Idled:Connect(function()
+                task.wait(math.random(3, 8))
+                VUser:CaptureController()
+                task.wait(math.random(1, 3))
+                VUser:ClickButton2(Vector2.new())
+            end)
+        end)
+        notificar("Anti-AFK ativado", Theme.Success)
+    end,
+    fpsboost = function()
+        pcall(function()
+            for _, obj in ipairs(workspace:GetDescendants()) do
+                if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") then
+                    obj.Enabled = false
+                end
+            end
+        end)
+        notificar("FPS Boost ativado", Theme.Warning)
+    end,
+    reset = function()
+        pcall(function()
+            local char = LP.Character
+            if char and char:FindFirstChild("Humanoid") then
+                char.Humanoid.Health = 0
+            end
+        end)
+        notificar("Resetado", Theme.Error)
+    end,
+    fullbright = function()
+        pcall(function()
+            Lighting.Ambient = Color3.fromRGB(255,255,255)
+            Lighting.Brightness = 2
+            Lighting.OutdoorAmbient = Color3.fromRGB(255,255,255)
+        end)
+        notificar("Fullbright ativado", Theme.Warning)
+    end,
+    screenshot = function()
+        notificar("Use PrintScreen ou F12", Theme.Accent3)
+    end,
+    userid = function()
+        pcall(function()
+            if setclipboard then setclipboard(tostring(LP.UserId))
+            elseif toclipboard then toclipboard(tostring(LP.UserId)) end
+        end)
+        notificar("ID: " .. LP.UserId, Theme.Accent1)
+    end,
+    ping = function()
+        local p = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+        notificar("Ping: " .. p .. "ms", p < 100 and Theme.Success or Theme.Warning)
+    end,
+    speed = function()
+        pcall(function()
+            LP.Character.Humanoid.WalkSpeed = math.random(45, 55)
+        end)
+        notificar("Speed leve ativado", Theme.Success)
+    end,
+    fly = function()
+        pcall(function()
+            local hrp = LP.Character.HumanoidRootPart
+            local bv = Instance.new("BodyVelocity")
+            bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+            bv.Velocity = Vector3.new(0, 50, 0)
+            bv.Parent = hrp
+            task.delay(5, function() bv:Destroy() end)
+        end)
+        notificar("Voando 5s", Theme.Accent1)
+    end,
+    noclip = function()
+        pcall(function()
+            for _, p in ipairs(LP.Character:GetDescendants()) do
+                if p:IsA("BasePart") then p.CanCollide = false end
+            end
+        end)
+        notificar("Noclip ativado", Theme.Warning)
+    end,
+    infinitejump = function()
+        notificar("Infinite Jump indisponivel", Theme.Warning)
+    end,
+    antifling = function()
+        notificar("Anti-Fling indisponivel", Theme.Warning)
+    end,
+    salavip = function() abrirSalaVIP() end,
+    escolhermusica = function() escolherMusica() end,
+    pesquisa = function() abrirPesquisa() end,
+    historico = function() abrirHistorico() end,
+    teleportes = function() abrirTeleportes() end,
+    minigame = function() abrirMiniGame() end,
+    conquistas = function() abrirConquistas() end,
+    listajogadores = function() abrirListaJogadores() end,
+    antivoid = function() toggleAntiVoid() end,
+    hotkeys = function() abrirHotkeys() end,
+    perfil = function() abrirPerfil() end,
+    comprar = function()
+        notificar("Discord: " .. CONFIG.DiscordLink, Theme.Success)
+        pcall(function()
+            game:GetService("GuiService"):OpenBrowserWindow(CONFIG.DiscordLink)
+        end)
+    end,
+    sobre = function()
+        notificar("PBL HUB " .. CONFIG.Versao, Theme.Accent3)
+    end
+}
+
+-- ═══════════════════════════════════════════════════════════
+-- PAINEL PRINCIPAL
+-- ═══════════════════════════════════════════════════════════
+local function criarPainel()
+    painelGui = Instance.new("ScreenGui")
+    painelGui.Name = "PBL_Panel"
+    painelGui.Parent = CoreGui
+    painelGui.IgnoreGuiInset = true
+    painelGui.DisplayOrder = 400
+    local Main = Instance.new("Frame")
+    Main.Size = UDim2.new(0, 800, 0, 460)
+    Main.Position = UDim2.new(0.5, -400, 0.5, -230)
+    Main.BackgroundColor3 = Theme.Bg
+    Main.BorderSizePixel = 0
+    Main.Active = true
+    Main.Draggable = true
+    Main.Parent = painelGui
+    corner(Main, 16)
+    grad(Main, Theme.Bg, Theme.BgSoft, 90)
+    stroke(Main, Theme.Accent1, 1.5, 0.35)
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Size = UDim2.new(0, 200, 1, 0)
+    Sidebar.BackgroundColor3 = Theme.BgSoft
+    Sidebar.BorderSizePixel = 0
+    Sidebar.Parent = Main
+    corner(Sidebar, 16)
+    local SidebarFix = Instance.new("Frame")
+    SidebarFix.Size = UDim2.new(0, 20, 1, 0)
+    SidebarFix.Position = UDim2.new(1, -20, 0, 0)
+    SidebarFix.BackgroundColor3 = Theme.BgSoft
+    SidebarFix.BorderSizePixel = 0
+    SidebarFix.Parent = Sidebar
+    local topBar = Instance.new("Frame")
+    topBar.Size = UDim2.new(1, 0, 0, 3)
+    topBar.BorderSizePixel = 0
+    topBar.Parent = Sidebar
+    corner(topBar, 3)
+    local topBarGrad = grad(topBar, Theme.Accent1, Theme.Accent2, 0)
+    task.spawn(function()
+        local rot = 0
+        while topBar.Parent do
+            rot = (rot + 3) % 360
+            topBarGrad.Rotation = rot
+            task.wait(0.05)
+        end
+    end)
+    local avatarAura = Instance.new("Frame")
+    avatarAura.Size = UDim2.new(0, 72, 0, 72)
+    avatarAura.Position = UDim2.new(0.5, -36, 0, 12)
+    avatarAura.BackgroundColor3 = Theme.Accent1
+    avatarAura.BackgroundTransparency = 0.85
+    avatarAura.BorderSizePixel = 0
+    avatarAura.Parent = Sidebar
+    corner(avatarAura, 36)
+    task.spawn(function()
+        while avatarAura.Parent do
+            TweenSvc:Create(avatarAura, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {BackgroundTransparency = 0.6}):Play()
+            task.wait(1.5)
+            if not avatarAura.Parent then break end
+            TweenSvc:Create(avatarAura, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {BackgroundTransparency = 0.9}):Play()
+            task.wait(1.5)
+        end
+    end)
+    local avatar = Instance.new("ImageLabel")
+    avatar.Size = UDim2.new(0, 60, 0, 60)
+    avatar.Position = UDim2.new(0.5, -30, 0, 18)
+    avatar.BackgroundColor3 = Theme.Card
+    avatar.BorderSizePixel = 0
+    avatar.Image = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. LP.UserId .. "&width=150&height=150&format=png"
+    avatar.Parent = Sidebar
+    corner(avatar, 30)
+    stroke(avatar, Theme.Accent1, 2, 0.1)
+    local nomeLbl = Instance.new("TextLabel")
+    nomeLbl.Size = UDim2.new(1, -10, 0, 18)
+    nomeLbl.Position = UDim2.new(0, 5, 0, 92)
+    nomeLbl.BackgroundTransparency = 1
+    nomeLbl.Text = CONFIG.Nome
+    nomeLbl.TextColor3 = Theme.Text
+    nomeLbl.TextSize = 12
+    nomeLbl.Font = Enum.Font.GothamBold
+    nomeLbl.TextTruncate = Enum.TextTruncate.AtEnd
+    nomeLbl.Parent = Sidebar
+    local tagLbl = Instance.new("TextLabel")
+    tagLbl.Size = UDim2.new(1, -10, 0, 14)
+    tagLbl.Position = UDim2.new(0, 5, 0, 110)
+    tagLbl.BackgroundTransparency = 1
+    tagLbl.Text = CONFIG.Versao
+    tagLbl.TextColor3 = Theme.TextDim
+    tagLbl.TextSize = 10
+    tagLbl.Font = Enum.Font.Gotham
+    tagLbl.Parent = Sidebar
+    local div = Instance.new("Frame")
+    div.Size = UDim2.new(1, -30, 0, 1)
+    div.Position = UDim2.new(0, 15, 0, 135)
+    div.BackgroundColor3 = Theme.CardHover
+    div.BorderSizePixel = 0
+    div.Parent = Sidebar
+    local relogio = Instance.new("TextLabel")
+    relogio.Size = UDim2.new(1, -10, 0, 14)
+    relogio.Position = UDim2.new(0, 5, 0, 145)
+    relogio.BackgroundTransparency = 1
+    relogio.Text = "00:00:00"
+    relogio.TextColor3 = Theme.Accent3
+    relogio.TextSize = 10
+    relogio.Font = Enum.Font.Gotham
+    relogio.Parent = Sidebar
+    local fpsLbl = Instance.new("TextLabel")
+    fpsLbl.Size = UDim2.new(1, -10, 0, 14)
+    fpsLbl.Position = UDim2.new(0, 5, 0, 162)
+    fpsLbl.BackgroundTransparency = 1
+    fpsLbl.Text = "60 FPS"
+    fpsLbl.TextColor3 = Theme.Accent3
+    fpsLbl.TextSize = 10
+    fpsLbl.Font = Enum.Font.Gotham
+    fpsLbl.Parent = Sidebar
+    local nivelLbl = Instance.new("TextLabel")
+    nivelLbl.Size = UDim2.new(1, -10, 0, 14)
+    nivelLbl.Position = UDim2.new(0, 5, 0, 180)
+    nivelLbl.BackgroundTransparency = 1
+    nivelLbl.Text = "Nivel " .. Nivel
+    nivelLbl.TextColor3 = Theme.Gold
+    nivelLbl.TextSize = 11
+    nivelLbl.Font = Enum.Font.GothamBold
+    nivelLbl.Parent = Sidebar
+    local menuFrame = Instance.new("Frame")
+    menuFrame.Size = UDim2.new(1, -20, 0, 230)
+    menuFrame.Position = UDim2.new(0, 10, 0, 205)
+    menuFrame.BackgroundTransparency = 1
+    menuFrame.Parent = Sidebar
+    local menuLayout = Instance.new("UIListLayout")
+    menuLayout.Padding = UDim.new(0, 4)
+    menuLayout.Parent = menuFrame
+    local footerLbl = Instance.new("TextLabel")
+    footerLbl.Size = UDim2.new(1, -10, 0, 14)
+    footerLbl.Position = UDim2.new(0, 5, 1, -18)
+    footerLbl.BackgroundTransparency = 1
+    footerLbl.Text = "[F1] Esconder"
+    footerLbl.TextColor3 = Theme.TextDim
+    footerLbl.TextSize = 9
+    footerLbl.Font = Enum.Font.Gotham
+    footerLbl.Parent = Sidebar
+    local ContentHeader = Instance.new("Frame")
+    ContentHeader.Size = UDim2.new(1, -220, 0, 70)
+    ContentHeader.Position = UDim2.new(0, 210, 0, 15)
+    ContentHeader.BackgroundTransparency = 1
+    ContentHeader.Parent = Main
+    local pageTitle = Instance.new("TextLabel")
+    pageTitle.Size = UDim2.new(1, -80, 0, 30)
+    pageTitle.BackgroundTransparency = 1
+    pageTitle.Text = "Scripts"
+    pageTitle.TextColor3 = Theme.Text
+    pageTitle.TextSize = 22
+    pageTitle.Font = Enum.Font.GothamBlack
+    pageTitle.TextXAlignment = Enum.TextXAlignment.Left
+    pageTitle.Parent = ContentHeader
+    task.spawn(function()
+        while pageTitle.Parent do
+            TweenSvc:Create(pageTitle, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {TextColor3 = Theme.Accent1}):Play()
+            task.wait(1.5)
+            if not pageTitle.Parent then break end
+            TweenSvc:Create(pageTitle, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {TextColor3 = Theme.Text}):Play()
+            task.wait(1.5)
+        end
+    end)
+    local pageSub = Instance.new("TextLabel")
+    pageSub.Size = UDim2.new(1, -80, 0, 14)
+    pageSub.Position = UDim2.new(0, 0, 0, 34)
+    pageSub.BackgroundTransparency = 1
+    pageSub.Text = "Escolha um script ou utilidade"
+    pageSub.TextColor3 = Theme.TextDim
+    pageSub.TextSize = 10
+    pageSub.Font = Enum.Font.Gotham
+    pageSub.TextXAlignment = Enum.TextXAlignment.Left
+    pageSub.Parent = ContentHeader
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 24, 0, 24)
+    closeBtn.Position = UDim2.new(1, -28, 0, 0)
+    closeBtn.BackgroundColor3 = Theme.Error
+    closeBtn.Text = "X"
+    closeBtn.TextColor3 = Theme.Text
+    closeBtn.TextSize = 12
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.BorderSizePixel = 0
+    closeBtn.AutoButtonColor = false
+    closeBtn.Parent = ContentHeader
+    corner(closeBtn, 6)
+    closeBtn.MouseEnter:Connect(function() sHover() end)
+    local minBtn = Instance.new("TextButton")
+    minBtn.Size = UDim2.new(0, 24, 0, 24)
+    minBtn.Position = UDim2.new(1, -56, 0, 0)
+    minBtn.BackgroundColor3 = Theme.Warning
+    minBtn.Text = "-"
+    minBtn.TextColor3 = Color3.fromRGB(10, 10, 15)
+    minBtn.TextSize = 13
+    minBtn.Font = Enum.Font.GothamBold
+    minBtn.BorderSizePixel = 0
+    minBtn.AutoButtonColor = false
+    minBtn.Parent = ContentHeader
+    corner(minBtn, 6)
+    minBtn.MouseEnter:Connect(function() sHover() end)
+    local sFrame = Instance.new("Frame")
+    sFrame.Size = UDim2.new(1, -220, 0, 36)
+    sFrame.Position = UDim2.new(0, 210, 0, 95)
+    sFrame.BackgroundColor3 = Theme.BgSoft
+    sFrame.BorderSizePixel = 0
+    sFrame.Parent = Main
+    corner(sFrame, 8)
+    stroke(sFrame, Theme.Accent1, 1, 0.7)
+    local sBox = Instance.new("TextBox")
+    sBox.Size = UDim2.new(1, -20, 1, 0)
+    sBox.Position = UDim2.new(0, 12, 0, 0)
+    sBox.BackgroundTransparency = 1
+    sBox.Text = ""
+    sBox.PlaceholderText = "Buscar script..."
+    sBox.PlaceholderColor3 = Theme.TextDim
+    sBox.TextColor3 = Theme.Text
+    sBox.TextSize = 12
+    sBox.Font = Enum.Font.Gotham
+    sBox.ClearTextOnFocus = false
+    sBox.TextXAlignment = Enum.TextXAlignment.Left
+    sBox.Parent = sFrame
+    local content = Instance.new("Frame")
+    content.Size = UDim2.new(1, -220, 1, -160)
+    content.Position = UDim2.new(0, 210, 0, 145)
+    content.BackgroundTransparency = 1
+    content.Parent = Main
+    local cardsGlobais = {}
+    local function criarCard(parent, nome, desc, cor, url, ordem, tipo)
+        tipo = tipo or "script"
+        local Card = Instance.new("TextButton")
+        Card.Size = UDim2.new(1, 0, 0, 64)
+        Card.BackgroundColor3 = Theme.Card
+        Card.Text = ""
+        Card.BorderSizePixel = 0
+        Card.AutoButtonColor = false
+        Card.LayoutOrder = ordem
+        Card.Parent = parent
+        corner(Card, 10)
+        grad(Card, Theme.Card, Theme.BgSoft, 90)
+        local cs = stroke(Card, Theme.CardHover, 1, 0.7)
+        local barra = Instance.new("Frame")
+        barra.Size = UDim2.new(0, 4, 0.8, 0)
+        barra.Position = UDim2.new(0, 0, 0.1, 0)
+        barra.BackgroundColor3 = cor
+        barra.BorderSizePixel = 0
+        barra.Parent = Card
+        corner(barra, 3)
+        local nl = Instance.new("TextLabel")
+        nl.Size = UDim2.new(1, -110, 0, 18)
+        nl.Position = UDim2.new(0, 18, 0, 14)
+        nl.BackgroundTransparency = 1
+        nl.Text = CONFIG.StreamerMode and "Script Oculto" or nome
+        nl.TextColor3 = Theme.Text
+        nl.TextSize = 13
+        nl.Font = Enum.Font.GothamBold
+        nl.TextXAlignment = Enum.TextXAlignment.Left
+        nl.Parent = Card
+        local dl = Instance.new("TextLabel")
+        dl.Size = UDim2.new(1, -110, 0, 14)
+        dl.Position = UDim2.new(0, 18, 0, 34)
+        dl.BackgroundTransparency = 1
+        dl.Text = desc
+        dl.TextColor3 = Theme.TextDim
+        dl.TextSize = 10
+        dl.Font = Enum.Font.Gotham
+        dl.TextXAlignment = Enum.TextXAlignment.Left
+        dl.Parent = Card
+        if tipo == "script" then
+            local fav = Instance.new("TextButton")
+            fav.Size = UDim2.new(0, 22, 0, 22)
+            fav.Position = UDim2.new(1, -54, 0.5, -11)
+            fav.BackgroundColor3 = Theme.BgSoft
+            fav.Text = favoritos[nome] and "*" or "-"
+            fav.TextColor3 = favoritos[nome] and Theme.Warning or Theme.TextDim
+            fav.TextSize = 14
+            fav.Font = Enum.Font.GothamBold
+            fav.BorderSizePixel = 0
+            fav.AutoButtonColor = false
+            fav.Parent = Card
+            corner(fav, 6)
+            fav.MouseEnter:Connect(function() sHover() end)
+            fav.MouseButton1Click:Connect(function()
+                sClick()
+                favoritos[nome] = not favoritos[nome]
+                fav.Text = favoritos[nome] and "*" or "-"
+                fav.TextColor3 = favoritos[nome] and Theme.Warning or Theme.TextDim
+            end)
+        end
+        local ar = Instance.new("TextLabel")
+        ar.Size = UDim2.new(0, 20, 1, 0)
+        ar.Position = UDim2.new(1, -24, 0, 0)
+        ar.BackgroundTransparency = 1
+        ar.Text = ">"
+        ar.TextColor3 = cor
+        ar.TextSize = 18
+        ar.Font = Enum.Font.GothamBold
+        ar.Parent = Card
+        Card.MouseEnter:Connect(function()
+            sHover()
+            TweenSvc:Create(Card, TweenInfo.new(0.2), {BackgroundColor3 = Theme.CardHover}):Play()
+            TweenSvc:Create(cs, TweenInfo.new(0.2), {Transparency = 0.1, Color = cor, Thickness = 1.5}):Play()
+        end)
+        Card.MouseLeave:Connect(function()
+            TweenSvc:Create(Card, TweenInfo.new(0.25), {BackgroundColor3 = Theme.Card}):Play()
+            TweenSvc:Create(cs, TweenInfo.new(0.25), {Transparency = 0.7, Color = Theme.CardHover, Thickness = 1}):Play()
+        end)
+        Card.MouseButton1Click:Connect(function()
+            sClick()
+            if tipo == "tema" then
+                aplicarTema(url)
+                notificar("Tema " .. url, cor)
+                painelGui:Destroy()
+                task.wait(0.2)
+                criarPainel()
+                return
+            end
+            if funcoesUtil[tipo] then
+                funcoesUtil[tipo]()
+                return
+            end
+            local confGui = Instance.new("ScreenGui")
+            confGui.Name = "PBL_Confirm"
+            confGui.Parent = CoreGui
+            confGui.IgnoreGuiInset = true
+            confGui.DisplayOrder = 600
+            local cov = Instance.new("Frame")
+            cov.Size = UDim2.new(1, 0, 1, 0)
+            cov.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+            cov.BackgroundTransparency = 0.55
+            cov.BorderSizePixel = 0
+            cov.Parent = confGui
+            local box = Instance.new("Frame")
+            box.Size = UDim2.new(0, 340, 0, 180)
+            box.Position = UDim2.new(0.5, -170, 0.5, -90)
+            box.BackgroundColor3 = Theme.Bg
+            box.BorderSizePixel = 0
+            box.Parent = confGui
+            corner(box, 16)
+            grad(box, Theme.Bg, Theme.Card, 45)
+            stroke(box, cor, 1.5, 0.3)
+            local t1 = Instance.new("TextLabel")
+            t1.Size = UDim2.new(1, -20, 0, 24)
+            t1.Position = UDim2.new(0, 10, 0, 45)
+            t1.BackgroundTransparency = 1
+            t1.Text = "Deseja executar?"
+            t1.TextColor3 = Theme.Text
+            t1.TextSize = 16
+            t1.Font = Enum.Font.GothamBlack
+            t1.Parent = box
+            local t2 = Instance.new("TextLabel")
+            t2.Size = UDim2.new(1, -20, 0, 18)
+            t2.Position = UDim2.new(0, 10, 0, 72)
+            t2.BackgroundTransparency = 1
+            t2.Text = nome
+            t2.TextColor3 = cor
+            t2.TextSize = 12
+            t2.Font = Enum.Font.GothamSemibold
+            t2.Parent = box
+            local yes = Instance.new("TextButton")
+            yes.Size = UDim2.new(0, 140, 0, 38)
+            yes.Position = UDim2.new(0, 20, 1, -52)
+            yes.BackgroundColor3 = Theme.Success
+            yes.Text = "SIM"
+            yes.TextColor3 = Color3.fromRGB(10, 10, 15)
+            yes.TextSize = 12
+            yes.Font = Enum.Font.GothamBold
+            yes.BorderSizePixel = 0
+            yes.AutoButtonColor = false
+            yes.Parent = box
+            corner(yes, 8)
+            yes.MouseEnter:Connect(function() sHover() end)
+            local no = Instance.new("TextButton")
+            no.Size = UDim2.new(0, 140, 0, 38)
+            no.Position = UDim2.new(1, -160, 1, -52)
+            no.BackgroundColor3 = Theme.Error
+            no.Text = "NAO"
+            no.TextColor3 = Theme.Text
+            no.TextSize = 12
+            no.Font = Enum.Font.GothamBold
+            no.BorderSizePixel = 0
+            no.AutoButtonColor = false
+            no.Parent = box
+            corner(no, 8)
+            no.MouseEnter:Connect(function() sHover() end)
+            no.MouseButton1Click:Connect(function()
+                sClick()
+                confGui:Destroy()
+            end)
+            yes.MouseButton1Click:Connect(function()
+                sClick()
+                confGui:Destroy()
+                task.wait(0.1)
+                bemVindoPBL(nome, function()
+                    if url and url ~= "" then
+                        local ok, err = pcall(function()
+                            loadstring(game:HttpGet(url))()
+                        end)
+                        if ok then
+                            contadorScripts = contadorScripts + 1
+                            table.insert(historico, nome .. " | " .. os.date("%H:%M:%S"))
+                            notificar(nome .. " carregado", Theme.Success)
+                            ganharXP(15)
+                        else
+                            notificar("Falha: " .. nome, Theme.Error)
+                        end
+                    end
+                end)
+            end)
+        end)
+        if tipo == "script" then
+            cardsGlobais[nome] = {card = Card, nome = nome, desc = desc}
+        end
+    end
+    local abas = {}
+    local abasBtns = {}
+    local function trocarAba(nomeAba)
+        for n, f in pairs(abas) do
+            f.Visible = (n == nomeAba)
+        end
+        for n, b in pairs(abasBtns) do
+            if n == nomeAba then
+                TweenSvc:Create(b, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Accent1}):Play()
+                b.TextColor3 = Theme.Text
+            else
+                TweenSvc:Create(b, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Card}):Play()
+                b.TextColor3 = Theme.TextDim
+            end
+        end
+        pageTitle.Text = nomeAba
+    end
+    local function criarAba(nomeAba)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, 0, 0, 30)
+        btn.BackgroundColor3 = Theme.Card
+        btn.Text = "  " .. nomeAba
+        btn.TextColor3 = Theme.TextDim
+        btn.TextSize = 11
+        btn.Font = Enum.Font.GothamSemibold
+        btn.BorderSizePixel = 0
+        btn.AutoButtonColor = false
+        btn.TextXAlignment = Enum.TextXAlignment.Left
+        btn.Parent = menuFrame
+        corner(btn, 8)
+        local frame = Instance.new("ScrollingFrame")
+        frame.Size = UDim2.new(1, 0, 1, 0)
+        frame.BackgroundTransparency = 1
+        frame.BorderSizePixel = 0
+        frame.ScrollBarThickness = 3
+        frame.ScrollBarImageColor3 = Theme.Accent1
+        frame.CanvasSize = UDim2.new(0, 0, 0, 0)
+        frame.Visible = false
+        frame.Parent = content
+        local l = Instance.new("UIListLayout")
+        l.Padding = UDim.new(0, 7)
+        l.SortOrder = Enum.SortOrder.LayoutOrder
+        l.Parent = frame
+        local p = Instance.new("UIPadding")
+        p.PaddingTop = UDim.new(0, 3)
+        p.PaddingBottom = UDim.new(0, 3)
+        p.PaddingRight = UDim.new(0, 6)
+        p.Parent = frame
+        l:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            frame.CanvasSize = UDim2.new(0, 0, 0, l.AbsoluteContentSize.Y + 10)
+        end)
+        btn.MouseEnter:Connect(function() sHover() end)
+        btn.MouseButton1Click:Connect(function()
+            sClick()
+            trocarAba(nomeAba)
+        end)
+        abas[nomeAba] = frame
+        abasBtns[nomeAba] = btn
+        return frame
+    end
+    local abaScripts = criarAba("Scripts")
+    local abaUtil = criarAba("Utilidades")
+    local abaExtra = criarAba("Extras")
+    local abaSocial = criarAba("Social")
+    local abaTema = criarAba("Temas")
+    criarCard(abaScripts, "Chilli Aura", "Aura visual", Theme.Chilli,
+        "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua", 1, "script")
+    criarCard(abaScripts, "Miranda AFK", "Farm AFK automatico", Theme.Miranda,
+        "https://raw.githubusercontent.com/miirandahub/loader/refs/heads/main/mirandaafk.lua", 2, "script")
+    criarCard(abaScripts, "Lennon Farm", "Farm principal", Theme.Lennon,
+        "https://raw.githubusercontent.com/lennonxscripts/lennonfarm/refs/heads/main/farmv1.lua", 3, "script")
+    criarCard(abaScripts, "Lennon Hub V3", "Farm melhorado", Color3.fromRGB(200, 100, 255),
+        "https://raw.githubusercontent.com/lennonxscripts/lennonhubv3/refs/heads/main/stealanegg.lua", 4, "script")
+    criarCard(abaScripts, "Miranda Eggs", "Auto steal eggs", Color3.fromRGB(90, 180, 255),
+        "https://raw.githubusercontent.com/miirandahub/loader/refs/heads/main/stealaeggs", 5, "script")
+    criarCard(abaUtil, "Rejoin", "Reconectar no servidor", Theme.Accent3, nil, 1, "rejoin")
+    criarCard(abaUtil, "Server Hop", "Trocar de servidor", Theme.Accent1, nil, 2, "hop")
+    criarCard(abaUtil, "Discord", "Abrir nosso Discord", Theme.Discord, nil, 3, "discord")
+    criarCard(abaUtil, "Play/Pause Musica", "Liga/desliga musica", Theme.Warning, nil, 4, "musica")
+    criarCard(abaUtil, "Modo Streamer", "Esconde nomes", Theme.Accent2, nil, 5, "streamer")
+    criarCard(abaUtil, "Fechar Tudo", "Fecha interfaces", Theme.Error, nil, 6, "fechartudo")
+    criarCard(abaUtil, "Hide Players", "Esconde jogadores", Theme.Accent2, nil, 7, "hide")
+    criarCard(abaUtil, "Anti-AFK", "Evita kick", Theme.Error, nil, 8, "antiafk")
+    criarCard(abaUtil, "FPS Boost", "Melhora performance", Theme.Warning, nil, 9, "fpsboost")
+    criarCard(abaUtil, "Copiar User ID", "Copia seu ID", Theme.Accent1, nil, 10, "userid")
+    criarCard(abaUtil, "FullBright", "Brilho maximo", Theme.Warning, nil, 11, "fullbright")
+    criarCard(abaUtil, "Reset", "Resetar personagem", Theme.Error, nil, 12, "reset")
+    criarCard(abaUtil, "Ver Ping", "Latencia atual", Theme.Success, nil, 13, "ping")
+    criarCard(abaUtil, "Speed Leve", "Velocidade leve", Theme.Success, nil, 14, "speed")
+    criarCard(abaUtil, "Fly 5s", "Voar por 5 segundos", Theme.Accent1, nil, 15, "fly")
+    criarCard(abaUtil, "Noclip", "Atravessa paredes", Theme.Warning, nil, 16, "noclip")
+    criarCard(abaUtil, "Anti-Void", "Salva se cair do mapa", Theme.Success, nil, 17, "antivoid")
+    criarCard(abaExtra, "Sala VIP", "Area premium", Theme.Gold, nil, 1, "salavip")
+    criarCard(abaExtra, "Escolher Musica", "Mude a trilha", Theme.Warning, nil, 2, "escolhermusica")
+    criarCard(abaExtra, "Pesquisa", "O que achou?", Theme.Accent1, nil, 3, "pesquisa")
+    criarCard(abaExtra, "Historico", "Scripts executados", Theme.Accent3, nil, 4, "historico")
+    criarCard(abaExtra, "Teleportes", "Ir pra locais", Theme.Accent2, nil, 5, "teleportes")
+    criarCard(abaExtra, "Mini-Game", "Clique rapido", Theme.Success, nil, 6, "minigame")
+    criarCard(abaExtra, "Conquistas", "Ver progresso", Theme.Gold, nil, 7, "conquistas")
+    criarCard(abaExtra, "Comprar VIP", "Apoie o projeto", Theme.Success, nil, 8, "comprar")
+    criarCard(abaExtra, "Sobre o Hub", "Informacoes", Theme.Accent3, nil, 9, "sobre")
+    criarCard(abaSocial, "Lista de Jogadores", "Ve todos e teleporta", Theme.Accent1, nil, 1, "listajogadores")
+    criarCard(abaSocial, "Add All Friends", "Segue todos", Theme.Discord, nil, 2, "social")
+    criarCard(abaSocial, "Perfil", "Seu nivel e stats", Theme.Gold, nil, 3, "perfil")
+    criarCard(abaSocial, "Hotkeys", "Configure teclas", Theme.Accent3, nil, 4, "hotkeys")
+    local i = 1
+    for nome, t in pairs(Temas) do
+        criarCard(abaTema, "Tema " .. nome, "Cor " .. nome, t.a1, nome, i, "tema")
+        i = i + 1
+    end
+    trocarAba("Scripts")
+    task.spawn(function()
+        while painelGui and painelGui.Parent do
+            local fps = math.floor(1 / RunSvc.RenderStepped:Wait())
+            local hora = os.date("%H:%M:%S")
+            if relogio and relogio.Parent then
+                relogio.Text = hora
+                fpsLbl.Text = fps .. " FPS"
+                nivelLbl.Text = "Nivel " .. Nivel .. " (" .. XP .. " XP)"
+            end
+            task.wait(0.5)
+        end
+    end)
+    sBox:GetPropertyChangedSignal("Text"):Connect(function()
+        local termo = string.lower(sBox.Text)
+        for nome, dados in pairs(cardsGlobais) do
+            if termo == "" then
+                dados.card.Visible = true
+            else
+                local match = string.find(string.lower(nome), termo) or string.find(string.lower(dados.desc), termo)
+                dados.card.Visible = match ~= nil
+            end
+        end
+    end)
+    closeBtn.MouseButton1Click:Connect(function()
+        sClick()
+        painelGui:Destroy()
+        pararMusica()
+    end)
+    local minimizado = false
+    minBtn.MouseButton1Click:Connect(function()
+        sClick()
+        minimizado = not minimizado
+        if minimizado then
+            Main.Size = UDim2.new(0, 800, 0, 80)
+            sFrame.Visible = false
+            content.Visible = false
+            menuFrame.Visible = false
+        else
+            Main.Size = UDim2.new(0, 800, 0, 460)
+            sFrame.Visible = true
+            content.Visible = true
+            menuFrame.Visible = true
+        end
+    end)
+    UIS.InputBegan:Connect(function(input, processed)
+        if processed then return end
+        if input.KeyCode == Enum.KeyCode.F1 then
+            if painelGui then
+                painelGui.Enabled = not painelGui.Enabled
+            end
+            local n = CoreGui:FindFirstChild("PBL_Notif")
+            if n then n:Destroy() end
+        end
+    end)
+end
+
+local verificando = false
+local function verificar()
+    if verificando then return end
+    verificando = true
+    if kInput.Text == CONFIG.Key then
+        sSucesso()
+        kBtn.Text = "CORRETA"
+        task.wait(0.5)
+        pcall(function() keyGui:Destroy() end)
+        task.wait(0.2)
+        pcall(telaObrigado, function()
+            boasVindasEpica(function()
+                local ok, err = pcall(criarPainel)
+                if not ok then
+                    warn("[PBL] " .. tostring(err))
+                    notificar("Erro: " .. tostring(err):sub(1, 60), Theme.Error)
+                end
+            end)
+        end)
+        verificando = false
+    else
+        sErro()
+        kBtn.Text = "INVALIDA"
+        kInput.Text = ""
+        task.wait(1.2)
+        kBtn.Text = "VERIFICAR"
+        verificando = false
+    end
+end
+
+kBtn.MouseButton1Click:Connect(verificar)
+kInput.FocusLost:Connect(function(enter)
+    if enter then verificar() end
+end)
+
+print("[PBL] Aguardando key... (key: " .. CONFIG.Key .. ")")
